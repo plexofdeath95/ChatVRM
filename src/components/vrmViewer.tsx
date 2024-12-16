@@ -132,6 +132,9 @@ export default function VrmViewer() {
           enableDamping={true}
           dampingFactor={0.2}
           screenSpacePanning={true}
+          enablePan={false}
+          maxDistance={5}
+          minDistance={1}
         />
       </Canvas>
     </div>
