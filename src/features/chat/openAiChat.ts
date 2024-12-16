@@ -9,8 +9,8 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
   const configuration = new Configuration({
     apiKey: apiKey,
   });
-  // ブラウザからAPIを叩くときに発生するエラーを無くすworkaround
-  // https://github.com/openai/openai-node/issues/6#issuecomment-1492814621
+  // Workaround to prevent errors when making API calls from the browser
+  // Reference: https://github.com/openai/openai-node/issues/6#issuecomment-1492814621
   delete configuration.baseOptions.headers["User-Agent"];
 
   const openai = new OpenAIApi(configuration);
@@ -21,7 +21,7 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
   });
 
   const [aiRes] = data.choices;
-  const message = aiRes.message?.content || "エラーが発生しました";
+  const message = aiRes.message?.content || "An error occurred";
 
   return { message: message };
 }

@@ -1,15 +1,13 @@
 import { VRMHumanoid, VRMLookAt, VRMLookAtApplier } from "@pixiv/three-vrm";
 import * as THREE from "three";
 
-/** サッケードが発生するまでの最小間隔 */
+/** Minimum interval before a saccade can occur */
 const SACCADE_MIN_INTERVAL = 0.5;
 
-/**
- * サッケードが発生する確率
- */
+/** Probability of a saccade occurring */
 const SACCADE_PROC = 0.05;
 
-/** サッケードの範囲半径。lookAtに渡される値で、実際の眼球の移動半径ではないので、若干大きめに。 in degrees */
+/** Radius of the saccade range in degrees. Larger than actual eyeball movement for visual effect. */
 const SACCADE_RADIUS = 5.0;
 
 const _v3A = new THREE.Vector3();
@@ -17,69 +15,64 @@ const _quatA = new THREE.Quaternion();
 const _eulerA = new THREE.Euler();
 
 /**
- * `VRMLookAt` に以下の機能を追加する:
+ * Extends `VRMLookAt` with the following features:
  *
- * - `userTarget` がアサインされている場合、ユーザ方向にスムージングしながら向く
- * - 目だけでなく、頭の回転でも向く
- * - 眼球のサッケード運動を追加する
+ * - If `userTarget` is assigned, smoothly looks towards the user's direction
+ * - Rotates the head in addition to the eyes
+ * - Adds saccadic eye movement
  */
 export class VRMLookAtSmoother extends VRMLookAt {
-  /** スムージング用の係数 */
+  /** Smoothing factor */
   public smoothFactor = 4.0;
 
-  /** ユーザ向きに向く限界の角度 in degree */
+  /** Maximum angle to look towards the user in degrees */
   public userLimitAngle = 90.0;
 
-  /** ユーザへの向き。もともと存在する `target` はアニメーションに使う */
+  /** Direction towards the user. The original `target` is reserved for animation use. */
   public userTarget?: THREE.Object3D | null;
 
-  /** `false` にするとサッケードを無効にできます */
+  /** Disables saccade when set to `false` */
   public enableSaccade: boolean;
 
-  /** サッケードの移動方向を格納しておく */
+  /** Stores the yaw direction of the saccade */
   private _saccadeYaw = 0.0;
 
-  /** サッケードの移動方向を格納しておく */
+  /** Stores the pitch direction of the saccade */
   private _saccadePitch = 0.0;
 
-  /** このタイマーが SACCADE_MIN_INTERVAL を超えたら SACCADE_PROC の確率でサッケードを発生させる */
+  /** Timer to determine when the next saccade should occur */
   private _saccadeTimer = 0.0;
 
-  /** スムージングするyaw */
+  /** Smoothed yaw */
   private _yawDamped = 0.0;
 
-  /** スムージングするpitch */
+  /** Smoothed pitch */
   private _pitchDamped = 0.0;
 
-  /** firstPersonBoneの回転を一時的にしまっておくやつ */
+  /** Temporarily stores the rotation of the first person bone */
   private _tempFirstPersonBoneQuat = new THREE.Quaternion();
 
   public constructor(humanoid: VRMHumanoid, applier: VRMLookAtApplier) {
     super(humanoid, applier);
-
     this.enableSaccade = true;
   }
 
   public update(delta: number): void {
     if (this.target && this.autoUpdate) {
-      // アニメーションの視線
-      // `_yaw` と `_pitch` のアップデート
+      // Update `_yaw` and `_pitch` based on the animation target
       this.lookAt(this.target.getWorldPosition(_v3A));
 
-      // アニメーションによって指定されたyaw / pitch。この関数内で不変
-      const yawAnimation = this._yaw;
-      const pitchAnimation = this._pitch;
+      const yawAnimation = this._yaw; // Yaw specified by the animation
+      const pitchAnimation = this._pitch; // Pitch specified by the animation
 
-      // このフレームで最終的に使うことになるyaw / pitch
       let yawFrame = yawAnimation;
       let pitchFrame = pitchAnimation;
 
-      // ユーザ向き
+      // Looking towards the user
       if (this.userTarget) {
-        // `_yaw` と `_pitch` のアップデート
         this.lookAt(this.userTarget.getWorldPosition(_v3A));
 
-        // 角度の制限。 `userLimitAngle` を超えていた場合はアニメーションで指定された方向を向く
+        // Limit angles; fallback to animation if exceeding `userLimitAngle`
         if (
           this.userLimitAngle < Math.abs(this._yaw) ||
           this.userLimitAngle < Math.abs(this._pitch)
@@ -88,13 +81,12 @@ export class VRMLookAtSmoother extends VRMLookAt {
           this._pitch = pitchAnimation;
         }
 
-        // yawDamped / pitchDampedをスムージングする
+        // Smooth yawDamped and pitchDamped
         const k = 1.0 - Math.exp(-this.smoothFactor * delta);
         this._yawDamped += (this._yaw - this._yawDamped) * k;
         this._pitchDamped += (this._pitch - this._pitchDamped) * k;
 
-        // アニメーションとブレンディングする
-        // アニメーションが横とかを向いている場合はそっちを尊重する
+        // Blend animation with user direction
         const userRatio =
           1.0 -
           THREE.MathUtils.smoothstep(
@@ -105,7 +97,6 @@ export class VRMLookAtSmoother extends VRMLookAt {
             90.0
           );
 
-        // yawFrame / pitchFrame に結果を代入
         yawFrame = THREE.MathUtils.lerp(
           yawAnimation,
           0.6 * this._yawDamped,
@@ -117,7 +108,7 @@ export class VRMLookAtSmoother extends VRMLookAt {
           userRatio
         );
 
-        // 頭も回す
+        // Rotate the head
         _eulerA.set(
           -this._pitchDamped * THREE.MathUtils.DEG2RAD,
           this._yawDamped * THREE.MathUtils.DEG2RAD,
@@ -133,7 +124,7 @@ export class VRMLookAtSmoother extends VRMLookAt {
       }
 
       if (this.enableSaccade) {
-        // サッケードの移動方向を計算
+        // Calculate saccade direction
         if (
           SACCADE_MIN_INTERVAL < this._saccadeTimer &&
           Math.random() < SACCADE_PROC
@@ -145,26 +136,26 @@ export class VRMLookAtSmoother extends VRMLookAt {
 
         this._saccadeTimer += delta;
 
-        // サッケードの移動分を加算
+        // Add saccade movement
         yawFrame += this._saccadeYaw;
         pitchFrame += this._saccadePitch;
 
-        // applierにわたす
+        // Apply saccade to the applier
         this.applier.applyYawPitch(yawFrame, pitchFrame);
       }
 
-      // applyはもうしたので、このフレーム内でアップデートする必要はない
+      // No further updates required this frame
       this._needsUpdate = false;
     }
 
-    // targetでlookAtを制御しない場合
+    // When `target` does not control lookAt
     if (this._needsUpdate) {
       this._needsUpdate = false;
       this.applier.applyYawPitch(this._yaw, this._pitch);
     }
   }
 
-  /** renderしたあとに叩いて頭の回転をもとに戻す */
+  /** Reverts the head rotation after rendering */
   public revertFirstPersonBoneQuat(): void {
     if (this.userTarget) {
       const head = this.humanoid.getNormalizedBoneNode("head")!;

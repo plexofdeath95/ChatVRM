@@ -5,9 +5,9 @@ import { buildUrl } from "@/utils/buildUrl";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 /**
- * three.jsを使った3Dビューワー
+ * 3D viewer using three.js
  *
- * setup()でcanvasを渡してから使う
+ * Use it by passing a canvas to the `setup()` method.
  */
 export class Viewer {
   public isReady: boolean;
@@ -22,11 +22,11 @@ export class Viewer {
   constructor() {
     this.isReady = false;
 
-    // scene
+    // Scene setup
     const scene = new THREE.Scene();
     this._scene = scene;
 
-    // light
+    // Lights
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
     directionalLight.position.set(1.0, 1.0, 1.0).normalize();
     scene.add(directionalLight);
@@ -34,7 +34,7 @@ export class Viewer {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
-    // animate
+    // Animation clock
     this._clock = new THREE.Clock();
     this._clock.start();
   }
@@ -44,7 +44,7 @@ export class Viewer {
       this.unloadVRM();
     }
 
-    // gltf and vrm
+    // GLTF and VRM loading
     this.model = new Model(this._camera || new THREE.Object3D());
     this.model.loadVRM(url).then(async () => {
       if (!this.model?.vrm) return;
@@ -59,7 +59,7 @@ export class Viewer {
       const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       if (vrma) this.model.loadAnimation(vrma);
 
-      // HACK: アニメーションの原点がずれているので再生後にカメラ位置を調整する
+      // HACK: Adjust camera position after animation starts, as animation origin is offset
       requestAnimationFrame(() => {
         this.resetCamera();
       });
@@ -74,13 +74,14 @@ export class Viewer {
   }
 
   /**
-   * Reactで管理しているCanvasを後から設定する
+   * Configure canvas after it's managed by React
    */
   public setup(canvas: HTMLCanvasElement) {
     const parentElement = canvas.parentElement;
     const width = parentElement?.clientWidth || canvas.width;
     const height = parentElement?.clientHeight || canvas.height;
-    // renderer
+
+    // Renderer setup
     this._renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       alpha: true,
@@ -90,12 +91,13 @@ export class Viewer {
     this._renderer.setSize(width, height);
     this._renderer.setPixelRatio(window.devicePixelRatio);
 
-    // camera
+    // Camera setup
     this._camera = new THREE.PerspectiveCamera(20.0, width / height, 0.1, 20.0);
     this._camera.position.set(0, 1.3, 1.5);
     this._cameraControls?.target.set(0, 1.3, 0);
     this._cameraControls?.update();
-    // camera controls
+
+    // Orbit controls setup
     this._cameraControls = new OrbitControls(
       this._camera,
       this._renderer.domElement
@@ -111,7 +113,7 @@ export class Viewer {
   }
 
   /**
-   * canvasの親要素を参照してサイズを変更する
+   * Adjust size based on the canvas parent element
    */
   public resize() {
     if (!this._renderer) return;
@@ -132,7 +134,7 @@ export class Viewer {
   }
 
   /**
-   * VRMのheadノードを参照してカメラ位置を調整する
+   * Adjust the camera position based on the VRM's head node
    */
   public resetCamera() {
     const headNode = this.model?.vrm?.humanoid.getNormalizedBoneNode("head");
@@ -152,7 +154,8 @@ export class Viewer {
   public update = () => {
     requestAnimationFrame(this.update);
     const delta = this._clock.getDelta();
-    // update vrm components
+
+    // Update VRM components
     if (this.model) {
       this.model.update(delta);
     }

@@ -13,9 +13,7 @@ export default async function handler(
   const apiKey = req.body.apiKey || process.env.OPEN_AI_KEY;
 
   if (!apiKey) {
-    res
-      .status(400)
-      .json({ message: "APIキーが間違っているか、設定されていません。" });
+    res.status(400).json({ message: "The API key is incorrect or not set." });
 
     return;
   }
@@ -32,7 +30,7 @@ export default async function handler(
   });
 
   const [aiRes] = data.choices;
-  const message = aiRes.message?.content || "エラーが発生しました";
+  const message = aiRes.message?.content || "An error occurred";
 
   res.status(200).json({ message: message });
 }

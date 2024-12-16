@@ -1,8 +1,8 @@
 import getConfig from "next/config";
 
 /**
- * github pagesに公開時にアセットを読み込めるようにするため、
- * 環境変数を見てURLにリポジトリ名を追加する
+ * To ensure assets are correctly loaded when publishing to GitHub Pages,
+ * check the environment variables and add the repository name to the URL.
  */
 export function buildUrl(path: string): string {
   const {
