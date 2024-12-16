@@ -1,4 +1,5 @@
 import { IconButton } from "./iconButton";
+import React from "react";
 
 type Props = {
   userMessage: string;
@@ -7,9 +8,10 @@ type Props = {
   onChangeUserMessage: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  onClickSendButton: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  onClickMicButton: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onClickSendButton: () => void;
+  onClickMicButton: () => void;
 };
+
 export const MessageInput = ({
   userMessage,
   isMicRecording,
@@ -18,6 +20,14 @@ export const MessageInput = ({
   onClickMicButton,
   onClickSendButton,
 }: Props) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter" && !isChatProcessing) {
+      onClickSendButton();
+    }
+  };
+
   return (
     <div className="absolute bottom-0 z-20 w-screen">
       <div className="bg-base text-black">
@@ -28,23 +38,23 @@ export const MessageInput = ({
               className="bg-secondary hover:bg-secondary-hover active:bg-secondary-press disabled:bg-secondary-disabled"
               isProcessing={isMicRecording}
               disabled={isChatProcessing}
-              onClick={onClickMicButton}
+              onClick={() => onClickMicButton()}
             />
             <input
               type="text"
               placeholder="Enter what you want to ask"
               onChange={onChangeUserMessage}
+              onKeyDown={handleKeyDown}
               disabled={isChatProcessing}
-              className="bg-surface1 hover:bg-surface1-hover focus:bg-surface1 disabled:bg-surface1-disabled disabled:text-primary-disabled rounded-16 w-full px-16 text-text-primary typography-16 font-bold disabled"
+              className="bg-surface1 hover:bg-surface1-hover focus:bg-surface1 disabled:bg-surface1-disabled disabled:text-primary-disabled rounded-16 w-full px-16 text-text-primary typography-16 font-bold"
               value={userMessage}
-            ></input>
-
+            />
             <IconButton
               iconName="24/Send"
               className="bg-secondary hover:bg-secondary-hover active:bg-secondary-press disabled:bg-secondary-disabled"
               isProcessing={isChatProcessing}
               disabled={isChatProcessing || !userMessage}
-              onClick={onClickSendButton}
+              onClick={() => onClickSendButton()}
             />
           </div>
         </div>
