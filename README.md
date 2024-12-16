@@ -1,71 +1,61 @@
 # ChatVRM
 
-ChatVRMは、技術共有およびデモンストレーションを主目的としたプロジェクトです。
+ChatVRM is a demo application that allows you to easily converse with 3D characters in your browser.
 
-本レポジトリは、2024-07-18時点のコードを持ってアーカイブされました。
-今後、ChatVRMに対して変更を加えたい場合、フォークを行って開発いただけますと幸いです。
+You can import VRM files, adjust voice settings to match the character, and generate responses with emotional expressions.
 
----
+The main technologies used in ChatVRM are as follows:
 
-ChatVRMはブラウザで簡単に3Dキャラクターと会話ができるデモアプリケーションです。
-
-VRMファイルをインポートしてキャラクターに合わせた声の調整や、感情表現を含んだ返答文の生成などを行うことができます。
-
-ChatVRMの各機能は主に以下の技術を使用しています。
-
-- ユーザーの音声の認識
-    - [Web Speech API(SpeechRecognition)](https://developer.mozilla.org/ja/docs/Web/API/SpeechRecognition)
-- 返答文の生成
+- **User voice recognition**  
+    - [Web Speech API (SpeechRecognition)](https://developer.mozilla.org/en/docs/Web/API/SpeechRecognition)
+- **Response text generation**  
     - [ChatGPT API](https://platform.openai.com/docs/api-reference/chat)
-- 読み上げ音声の生成
+- **Text-to-speech generation**  
     - [Koemotion/Koeiromap API](https://koemotion.rinna.co.jp/)
-- 3Dキャラクターの表示
+- **3D character display**  
     - [@pixiv/three-vrm](https://github.com/pixiv/three-vrm)
 
-
-## デモ
-
-Glitchでデモを公開しています。
+## Demo
+A demo is available on Glitch:
 
 [https://chatvrm.glitch.me](https://chatvrm.glitch.me)
 
-## 実行
-ローカル環境で実行する場合はこのリポジトリをクローンするか、ダウンロードしてください。
+## Running Locally
+To run ChatVRM in your local environment, clone or download this repository:
 
 ```bash
 git clone git@github.com:pixiv/ChatVRM.git
 ```
 
-必要なパッケージをインストールしてください。
+Install the required packages:
+
 ```bash
 npm install
 ```
 
-パッケージのインストールが完了した後、以下のコマンドで開発用のWebサーバーを起動します。
+Once the installation is complete, start the development web server with the following command:
+
 ```bash
 npm run dev
 ```
 
-実行後、以下のURLにアクセスして動作を確認して下さい。
+After running, access the following URL to verify it works:
 
-[http://localhost:3000](http://localhost:3000) 
-
+[http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## ChatGPT API
+ChatVRM uses the ChatGPT API to generate response texts.
 
-ChatVRMでは返答文の生成にChatGPT APIを使用しています。
-
-ChatGPT APIの仕様や利用規約については以下のリンクや公式サイトをご確認ください。
+For the specifications and terms of use of the ChatGPT API, please refer to the following links and the official website:
 
 - [https://platform.openai.com/docs/api-reference/chat](https://platform.openai.com/docs/api-reference/chat)
 - [https://openai.com/policies/api-data-usage-policies](https://openai.com/policies/api-data-usage-policies)
 
-
 ## Koeiromap API
-ChatVRMでは返答文の音声読み上げにKoemotionのKoeiromap APIを使用しています。
+ChatVRM uses Koemotion's Koeiromap API for text-to-speech conversion of response texts.
 
-Koeiromap APIの仕様や利用規約については以下のリンクや公式サイトをご確認ください。
+For the specifications and terms of use of the Koeiromap API, please refer to the following links and the official website:
 
 - [https://koemotion.rinna.co.jp/](https://koemotion.rinna.co.jp/)
