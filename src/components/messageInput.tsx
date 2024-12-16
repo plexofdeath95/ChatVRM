@@ -26,6 +26,7 @@ export const MessageInput = ({
 
   useEffect(() => {
     setInputRef(inputRef);
+    inputRef?.current?.focus();
   }, [setInputRef]);
 
   const handleKeyDown = (

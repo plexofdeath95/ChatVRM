@@ -6,6 +6,7 @@ import { buildUrl } from "@/utils/buildUrl";
 import { Model } from "@/features/vrmViewer/model";
 import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+
 function VrmModel({
   url,
   orbitControlsRef,
@@ -18,7 +19,9 @@ function VrmModel({
 
   useEffect(() => {
     let m: Model | null = new Model(camera);
-    m.loadVRM(url).then(async () => {
+
+    (async () => {
+      await m.loadVRM(url);
       if (!m?.vrm) return;
 
       m.vrm.scene.traverse((obj) => {
@@ -30,25 +33,32 @@ function VrmModel({
       const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       if (vrma) m.loadAnimation(vrma);
 
+      // Give the scene at least a frame to settle
       requestAnimationFrame(() => {
-        const headNode = m?.vrm?.humanoid.getNormalizedBoneNode("head");
-        if (headNode) {
-          const headWPos = headNode.getWorldPosition(new Vector3());
-          camera.position.set(camera.position.x, headWPos.y, camera.position.z);
-
-          if (orbitControlsRef?.current) {
-            orbitControlsRef.current.target.set(
-              headWPos.x,
+        setTimeout(() => {
+          const headNode = m?.vrm?.humanoid.getNormalizedBoneNode("head");
+          if (headNode) {
+            const headWPos = headNode.getWorldPosition(new Vector3());
+            camera.position.set(
+              camera.position.x,
               headWPos.y,
-              headWPos.z
+              camera.position.z
             );
-            orbitControlsRef.current.update();
+
+            if (orbitControlsRef?.current) {
+              orbitControlsRef.current.target.set(
+                headWPos.x,
+                headWPos.y,
+                headWPos.z
+              );
+              orbitControlsRef.current.update();
+            }
           }
-        }
+        }, 50);
       });
 
       setModel(m);
-    });
+    })();
 
     return () => {
       if (m?.vrm) {
