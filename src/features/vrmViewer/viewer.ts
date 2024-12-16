@@ -27,11 +27,11 @@ export class Viewer {
     this._scene = scene;
 
     // Lights
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
     directionalLight.position.set(1.0, 1.0, 1.0).normalize();
     scene.add(directionalLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
     // Animation clock
@@ -87,7 +87,7 @@ export class Viewer {
       alpha: true,
       antialias: true,
     });
-    this._renderer.outputEncoding = THREE.sRGBEncoding;
+    this._renderer.outputColorSpace = THREE.SRGBColorSpace;
     this._renderer.setSize(width, height);
     this._renderer.setPixelRatio(window.devicePixelRatio);
 
