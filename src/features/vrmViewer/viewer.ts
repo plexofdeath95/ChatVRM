@@ -94,8 +94,10 @@ export class Viewer {
     // Camera setup
     this._camera = new THREE.PerspectiveCamera(20.0, width / height, 0.1, 20.0);
     this._camera.position.set(0, 1.3, 1.5);
-    this._cameraControls?.target.set(0, 1.3, 0);
-    this._cameraControls?.update();
+
+    // If you want to look at a specific point, set it here:
+    const target = new THREE.Vector3(0, 1.3, 0);
+    this._camera.lookAt(target);
 
     // Orbit controls setup
     this._cameraControls = new OrbitControls(
@@ -103,6 +105,9 @@ export class Viewer {
       this._renderer.domElement
     );
     this._cameraControls.screenSpacePanning = true;
+    this._cameraControls.enableDamping = true;
+    this._cameraControls.dampingFactor = 0.2;
+    this._cameraControls.target.set(target.x, target.y, target.z);
     this._cameraControls.update();
 
     window.addEventListener("resize", () => {
@@ -155,10 +160,11 @@ export class Viewer {
     requestAnimationFrame(this.update);
     const delta = this._clock.getDelta();
 
-    // Update VRM components
     if (this.model) {
       this.model.update(delta);
     }
+
+    this._cameraControls?.update();
 
     if (this._renderer && this._camera) {
       this._renderer.render(this._scene, this._camera);
