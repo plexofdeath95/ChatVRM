@@ -1,11 +1,23 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import { Vector3 } from "three";
 import { buildUrl } from "@/utils/buildUrl";
 import { Model } from "@/features/vrmViewer/model";
 import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+
+function Environment() {
+  const gltf = useGLTF(buildUrl("/low_poly_room.glb"));
+  
+  return (
+    <primitive 
+      object={gltf.scene} 
+      scale={1} 
+      position={[0, 0, 0]}
+    />
+  );
+}
 
 function VrmModel({
   url,
@@ -124,6 +136,7 @@ export default function VrmViewer() {
         <ambientLight intensity={0.6} />
         <directionalLight intensity={2} position={[1.0, 1.0, 1.0]} />
         <Suspense fallback={null}>
+          <Environment />
           <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
         </Suspense>
         <OrbitControls
@@ -140,3 +153,5 @@ export default function VrmViewer() {
     </div>
   );
 }
+
+useGLTF.preload(buildUrl("/low_poly_room.glb"));
