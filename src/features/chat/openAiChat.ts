@@ -1,3 +1,5 @@
+// openAiChat.ts
+
 import { Configuration, OpenAIApi } from "openai";
 import { Message } from "../messages/messages";
 
@@ -10,7 +12,6 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
     apiKey: apiKey,
   });
   // Workaround to prevent errors when making API calls from the browser
-  // Reference: https://github.com/openai/openai-node/issues/6#issuecomment-1492814621
   delete configuration.baseOptions.headers["User-Agent"];
 
   const openai = new OpenAIApi(configuration);
@@ -29,17 +30,16 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
 export async function getChatResponseStream(
   messages: Message[],
   apiKey: string
-) {
+): Promise<ReadableStream<string>> {
   if (!apiKey) {
     throw new Error("Invalid API Key");
   }
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-  };
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    headers: headers,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
     method: "POST",
     body: JSON.stringify({
       model: "gpt-3.5-turbo",
@@ -49,38 +49,64 @@ export async function getChatResponseStream(
     }),
   });
 
-  const reader = res.body?.getReader();
-  if (res.status !== 200 || !reader) {
-    throw new Error("Something went wrong");
+  if (!res.ok || !res.body) {
+    throw new Error(`Failed to fetch: ${res.status} - ${res.statusText}`);
   }
 
-  const stream = new ReadableStream({
-    async start(controller: ReadableStreamDefaultController) {
-      const decoder = new TextDecoder("utf-8");
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+
+  return new ReadableStream<string>({
+    async start(controller) {
+      let buffer = "";
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          const data = decoder.decode(value);
-          const chunks = data
-            .split("data:")
-            .filter((val) => !!val && val.trim() !== "[DONE]");
-          for (const chunk of chunks) {
-            const json = JSON.parse(chunk);
-            const messagePiece = json.choices[0].delta.content;
-            if (!!messagePiece) {
-              controller.enqueue(messagePiece);
+
+          if (value) {
+            buffer += decoder.decode(value, { stream: true });
+          }
+
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+
+            if (trimmed === "data: [DONE]") {
+              controller.close();
+              return;
+            }
+
+            if (trimmed.startsWith("data: ")) {
+              const jsonStr = trimmed.replace(/^data:\s*/, "");
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed?.choices?.[0]?.delta?.content;
+                if (content) {
+                  controller.enqueue(content);
+                }
+              } catch (err) {
+                console.error(
+                  "Failed to parse SSE JSON:",
+                  err,
+                  "Line:",
+                  trimmed
+                );
+              }
             }
           }
         }
-      } catch (error) {
-        controller.error(error);
+      } catch (err) {
+        console.error("Stream processing error:", err);
+        controller.error(err);
       } finally {
         reader.releaseLock();
-        controller.close();
       }
+
+      controller.close();
     },
   });
-
-  return stream;
 }

@@ -1,11 +1,9 @@
+// index.tsx
+
 import { useCallback, useContext, useEffect, useState } from "react";
 import VrmViewer from "@/components/vrmViewer";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
-import {
-  Message,
-  textsToScreenplay,
-  Screenplay,
-} from "@/features/messages/messages";
+import { Message, textsToScreenplay } from "@/features/messages/messages";
 import { speakCharacter } from "@/features/messages/speakCharacter";
 import { MessageInputContainer } from "@/components/messageInputContainer";
 import { SYSTEM_PROMPT } from "@/features/constants/systemPromptConstants";
@@ -30,10 +28,9 @@ export default function Home() {
   const [assistantMessage, setAssistantMessage] = useState("");
 
   useEffect(() => {
-    if (window.localStorage.getItem("chatVRMParams")) {
-      const params = JSON.parse(
-        window.localStorage.getItem("chatVRMParams") as string
-      );
+    const savedParams = window.localStorage.getItem("chatVRMParams");
+    if (savedParams) {
+      const params = JSON.parse(savedParams);
       setSystemPrompt(params.systemPrompt ?? SYSTEM_PROMPT);
       setKoeiroParam(params.koeiroParam ?? DEFAULT_PARAM);
       setChatLog(params.chatLog ?? []);
@@ -41,149 +38,101 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    process.nextTick(() =>
-      window.localStorage.setItem(
-        "chatVRMParams",
-        JSON.stringify({ systemPrompt, koeiroParam, chatLog })
-      )
-    );
+    const params = {
+      systemPrompt,
+      koeiroParam,
+      chatLog,
+    };
+    window.localStorage.setItem("chatVRMParams", JSON.stringify(params));
   }, [systemPrompt, koeiroParam, chatLog]);
 
   const handleChangeChatLog = useCallback(
     (targetIndex: number, text: string) => {
-      const newChatLog = chatLog.map((v: Message, i) => {
-        return i === targetIndex ? { role: v.role, content: text } : v;
-      });
-
+      const newChatLog = chatLog.map((msg, i) =>
+        i === targetIndex ? { role: msg.role, content: text } : msg
+      );
       setChatLog(newChatLog);
     },
     [chatLog]
   );
 
-  /**
-   * Request and play voice lines sequentially for each sentence
-   */
   const handleSpeakAi = useCallback(
-    async (
-      screenplay: Screenplay,
-      onStart?: () => void,
-      onEnd?: () => void
-    ) => {
-      speakCharacter(screenplay, viewer, koeiromapKey, onStart, onEnd);
+    async (text: string, onStart?: () => void, onEnd?: () => void) => {
+      const screenplay = textsToScreenplay([text], koeiroParam);
+      speakCharacter(screenplay[0], viewer, koeiromapKey, onStart, onEnd);
     },
-    [viewer, koeiromapKey]
+    [viewer, koeiromapKey, koeiroParam]
   );
 
-  /**
-   * Handle conversation with the assistant
-   */
   const handleSendChat = useCallback(
-    async (text: string) => {
+    async (userInput: string) => {
       if (!openAiKey) {
         setAssistantMessage("API key has not been entered");
         return;
       }
-
-      const newMessage = text;
-
-      if (newMessage == null) return;
+      if (!userInput) return;
 
       setChatProcessing(true);
-      // Add and display the user's message
-      const messageLog: Message[] = [
+
+      const updatedChatLog: Message[] = [
         ...chatLog,
-        { role: "user", content: newMessage },
+        { role: "user", content: userInput },
       ];
-      setChatLog(messageLog);
+      setChatLog(updatedChatLog);
 
-      // Send to ChatGPT
       const messages: Message[] = [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        ...messageLog,
+        { role: "system", content: systemPrompt },
+        ...updatedChatLog,
       ];
 
-      const stream = await getChatResponseStream(messages, openAiKey).catch(
-        (e) => {
-          console.error(e);
-          return null;
-        }
-      );
-      if (stream == null) {
+      let stream: ReadableStream<string> | null = null;
+      try {
+        stream = await getChatResponseStream(messages, openAiKey);
+      } catch (error) {
+        console.error("Error fetching the stream:", error);
+        setAssistantMessage("Error fetching response. Check your API key.");
+        setChatProcessing(false);
+        return;
+      }
+
+      if (!stream) {
+        setAssistantMessage("No response from API");
         setChatProcessing(false);
         return;
       }
 
       const reader = stream.getReader();
-      let receivedMessage = "";
-      let aiTextLog = "";
-      let tag = "";
-      const sentences = new Array<string>();
+      let fullAssistantResponse = "";
+
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          receivedMessage += value;
-
-          // Detect the tag portion of the response
-          const tagMatch = receivedMessage.match(/^\[(.*?)\]/);
-          if (tagMatch && tagMatch[0]) {
-            tag = tagMatch[0];
-            receivedMessage = receivedMessage.slice(tag.length);
-          }
-
-          // Process the response sentence by sentence
-          const sentenceMatch = receivedMessage.match(
-            /^(.+[。．！？\n]|.{10,}[、,])/
-          );
-          if (sentenceMatch && sentenceMatch[0]) {
-            const sentence = sentenceMatch[0];
-            sentences.push(sentence);
-            receivedMessage = receivedMessage
-              .slice(sentence.length)
-              .trimStart();
-
-            // Skip if the text cannot or should not be spoken
-            if (
-              !sentence.replace(
-                /^[\s\[\(\{「［（【『〈《〔｛«‹〘〚〛〙›»〕》〉』】）］」\}\)\]]+$/g,
-                ""
-              )
-            ) {
-              continue;
-            }
-
-            const aiText = `${tag} ${sentence}`;
-            const aiTalks = textsToScreenplay([aiText], koeiroParam);
-            aiTextLog += aiText;
-
-            // Generate and play audio for each sentence, displaying the response
-            const currentAssistantMessage = sentences.join(" ");
-            handleSpeakAi(aiTalks[0], () => {
-              setAssistantMessage(currentAssistantMessage);
-            });
+          if (value) {
+            fullAssistantResponse += value;
+            setAssistantMessage(fullAssistantResponse.trim());
           }
         }
       } catch (e) {
-        setChatProcessing(false);
-        console.error(e);
+        console.error("Error while reading the stream:", e);
+        setAssistantMessage("Error reading the response stream.");
       } finally {
         reader.releaseLock();
       }
 
-      // Add the assistant's response to the log
-      const messageLogAssistant: Message[] = [
-        ...messageLog,
-        { role: "assistant", content: aiTextLog },
+      const finalResponse = fullAssistantResponse.trim();
+      const finalChatLog: Message[] = [
+        ...updatedChatLog,
+        { role: "assistant", content: finalResponse },
       ];
+      setChatLog(finalChatLog);
 
-      setChatLog(messageLogAssistant);
+      await handleSpeakAi(finalResponse);
+
       setChatProcessing(false);
     },
-    [systemPrompt, chatLog, handleSpeakAi, openAiKey, koeiroParam]
+    [systemPrompt, chatLog, openAiKey, handleSpeakAi]
   );
 
   return (
@@ -200,6 +149,7 @@ export default function Home() {
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}
       />
+
       <Menu
         openAiKey={openAiKey}
         systemPrompt={systemPrompt}
@@ -215,6 +165,7 @@ export default function Home() {
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
         onChangeKoeiromapKey={setKoeiromapKey}
       />
+
       <GitHubLink />
     </div>
   );
