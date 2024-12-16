@@ -1,5 +1,3 @@
-// index.tsx
-
 import { useCallback, useContext, useEffect, useState } from "react";
 import VrmViewer from "@/components/vrmViewer";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
@@ -11,8 +9,8 @@ import { KoeiroParam, DEFAULT_PARAM } from "@/features/constants/koeiroParam";
 import { getChatResponseStream } from "@/features/chat/openAiChat";
 import { Introduction } from "@/components/introduction";
 import { Menu } from "@/components/menu";
-import { GitHubLink } from "@/components/githubLink";
 import { Meta } from "@/components/meta";
+import { useUI } from "@/stores/uiStore";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -26,6 +24,7 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
+  const { inputRef } = useUI();
 
   useEffect(() => {
     const savedParams = window.localStorage.getItem("chatVRMParams");
@@ -131,8 +130,16 @@ export default function Home() {
       await handleSpeakAi(finalResponse);
 
       setChatProcessing(false);
+
+      setTimeout(() => {
+        if (inputRef?.current) {
+          inputRef.current.focus();
+        } else {
+          console.warn("inputRef is null, cannot focus input");
+        }
+      }, 100);
     },
-    [systemPrompt, chatLog, openAiKey, handleSpeakAi]
+    [systemPrompt, chatLog, openAiKey, handleSpeakAi, inputRef]
   );
 
   return (
@@ -165,8 +172,6 @@ export default function Home() {
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
         onChangeKoeiromapKey={setKoeiromapKey}
       />
-
-      <GitHubLink />
     </div>
   );
 }

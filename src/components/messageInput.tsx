@@ -1,5 +1,6 @@
+import { useUI } from "@/stores/uiStore";
 import { IconButton } from "./iconButton";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 type Props = {
   userMessage: string;
@@ -20,6 +21,13 @@ export const MessageInput = ({
   onClickMicButton,
   onClickSendButton,
 }: Props) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { setInputRef } = useUI();
+
+  useEffect(() => {
+    setInputRef(inputRef);
+  }, [setInputRef]);
+
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -38,9 +46,10 @@ export const MessageInput = ({
               className="bg-secondary hover:bg-secondary-hover active:bg-secondary-press disabled:bg-secondary-disabled"
               isProcessing={isMicRecording}
               disabled={isChatProcessing}
-              onClick={() => onClickMicButton()}
+              onClick={onClickMicButton}
             />
             <input
+              ref={inputRef}
               type="text"
               placeholder="Enter what you want to ask"
               onChange={onChangeUserMessage}
@@ -54,7 +63,7 @@ export const MessageInput = ({
               className="bg-secondary hover:bg-secondary-hover active:bg-secondary-press disabled:bg-secondary-disabled"
               isProcessing={isChatProcessing}
               disabled={isChatProcessing || !userMessage}
-              onClick={() => onClickSendButton()}
+              onClick={onClickSendButton}
             />
           </div>
         </div>
