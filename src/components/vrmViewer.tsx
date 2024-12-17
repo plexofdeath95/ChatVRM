@@ -1,19 +1,21 @@
 // vrmViewer.tsx
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
+import {
+  Box,
+  DragControls,
+  OrbitControls,
+  TransformControls,
+  useGLTF,
+} from "@react-three/drei";
 import { Vector3 } from "three";
 import { buildUrl } from "@/utils/buildUrl";
 import { Model } from "@/features/vrmViewer/model";
 import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useLoadVrmModel } from "@/features/vrmViewer/useLoadVrmModel";
-
-function Environment() {
-  const gltf = useGLTF(buildUrl("/low_poly_room.glb"));
-
-  return <primitive object={gltf.scene} scale={1} position={[0, 0, 0]} />;
-}
+import { LowPolyRoom } from "@/model-components/LowPolyRoom";
+import { useCameraStore } from "@/stores/cameraStore";
 
 function VrmModel({
   url,
@@ -36,6 +38,14 @@ export default function VrmViewer() {
   const [vrmUrl, setVrmUrl] = useState(buildUrl("/AvatarSample_B.vrm"));
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
+
+  const setOrbitControlsRef = useCameraStore(
+    (state) => state.setOrbitControlsRef
+  );
+
+  useEffect(() => {
+    setOrbitControlsRef(orbitControlsRef);
+  }, [setOrbitControlsRef, orbitControlsRef]);
 
   const handleDrop = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -91,8 +101,11 @@ export default function VrmViewer() {
         />
         <pointLight position={[0, 2, 0]} intensity={0.5} color="#ffffff" />
         <Suspense fallback={null}>
-          <Environment />
+          <LowPolyRoom />
           <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
+          {/* <TransformControls>
+            <Box />
+          </TransformControls> */}
         </Suspense>
         <OrbitControls
           ref={orbitControlsRef}
@@ -100,13 +113,11 @@ export default function VrmViewer() {
           enableDamping={true}
           dampingFactor={0.2}
           screenSpacePanning={true}
-          enablePan={false}
-          maxDistance={7}
+          enablePan={true}
+          maxDistance={12}
           minDistance={1}
         />
       </Canvas>
     </div>
   );
 }
-
-useGLTF.preload(buildUrl("/low_poly_room.glb"));
