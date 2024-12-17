@@ -138,8 +138,22 @@ export default function VrmViewer() {
         }}
         className="h-full w-full"
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight intensity={2} position={[1.0, 1.0, 1.0]} />
+        <ambientLight intensity={1.2} />
+        <directionalLight 
+          intensity={0.8} 
+          position={[2, 2, 1]} 
+          castShadow
+        />
+        <directionalLight 
+          intensity={0.3} 
+          position={[-2, 2, -1]} 
+          color="#ffffff"
+        />
+        <pointLight 
+          position={[0, 2, 0]} 
+          intensity={0.5} 
+          color="#ffffff"
+        />
         <Suspense fallback={null}>
           <Environment />
           <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
