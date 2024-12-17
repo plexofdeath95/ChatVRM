@@ -1,11 +1,12 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { Vector3 } from "three";
+import { Vector3, Mesh, BoxGeometry, MeshStandardMaterial } from "three";
 import { buildUrl } from "@/utils/buildUrl";
 import { Model } from "@/features/vrmViewer/model";
 import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { ThreeEvent } from '@react-three/fiber';
 
 function Environment() {
   const gltf = useGLTF(buildUrl("/low_poly_room.glb"));
@@ -88,10 +89,34 @@ function VrmModel({
   return null;
 }
 
+function PlaceableObject({ position }: { position: [number, number, number] }) {
+  return (
+    <mesh position={position}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="hotpink" />
+    </mesh>
+  );
+}
+
+function AssetMenu({ onSelectAsset }: { onSelectAsset: () => void }) {
+  return (
+    <div className="absolute top-0 right-0 bg-white/80 p-4 m-4 rounded-lg overflow-y-auto max-h-[80vh]">
+      <button
+        onClick={onSelectAsset}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
+        Add Cube
+      </button>
+    </div>
+  );
+}
+
 export default function VrmViewer() {
   const [vrmUrl, setVrmUrl] = useState(buildUrl("/AvatarSample_B.vrm"));
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
+  const [placedObjects, setPlacedObjects] = useState<Array<[number, number, number]>>([]);
+  const [isPlacementMode, setIsPlacementMode] = useState(false);
 
   const handleDrop = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -126,6 +151,30 @@ export default function VrmViewer() {
     };
   }, [handleDrop, handleDragOver]);
 
+  const handlePlaneClick = (event: ThreeEvent<MouseEvent>) => {
+    if (!isPlacementMode) return;
+    
+    event.stopPropagation();
+    const position = event.point.toArray() as [number, number, number];
+    setPlacedObjects(prev => [...prev, position]);
+    setIsPlacementMode(false);
+  };
+
+  const handleRightClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    
+    // Remove the closest object to the click point
+    const clickPoint = event.point;
+    const closest = placedObjects.reduce((closest, pos, index) => {
+      const distance = clickPoint.distanceTo(new Vector3(...pos));
+      return distance < closest.distance ? { distance, index } : closest;
+    }, { distance: Infinity, index: -1 });
+
+    if (closest.index !== -1) {
+      setPlacedObjects(prev => prev.filter((_, i) => i !== closest.index));
+    }
+  };
+
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
       <Canvas
@@ -138,6 +187,15 @@ export default function VrmViewer() {
         <Suspense fallback={null}>
           <Environment />
           <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
+          
+          <mesh rotation={[-Math.PI / 2, 0, 0]} onClick={handlePlaneClick} onContextMenu={handleRightClick}>
+            <planeGeometry args={[100, 100]} />
+            <meshStandardMaterial visible={false} />
+          </mesh>
+
+          {placedObjects.map((position, index) => (
+            <PlaceableObject key={index} position={position} />
+          ))}
         </Suspense>
         <OrbitControls
           ref={orbitControlsRef}
@@ -150,6 +208,8 @@ export default function VrmViewer() {
           minDistance={1}
         />
       </Canvas>
+
+      <AssetMenu onSelectAsset={() => setIsPlacementMode(true)} />
     </div>
   );
 }
