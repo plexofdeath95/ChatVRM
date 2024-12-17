@@ -1,5 +1,4 @@
-import { koeiromapFreeV1 } from "@/features/koeiromap/koeiromap";
-
+import { OpenAI } from "openai";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
@@ -10,19 +9,30 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const message = req.body.message;
-  const speakerX = req.body.speakerX;
-  const speakerY = req.body.speakerY;
-  const style = req.body.style;
-  const apiKey = req.body.apiKey;
+  try {
+    const { message, apiKey } = req.body;
 
-  const voice = await koeiromapFreeV1(
-    message,
-    speakerX,
-    speakerY,
-    style,
-    apiKey
-  );
+    if (!message || !apiKey) {
+      return res.status(400).json({ audio: "Missing message or API key." });
+    }
 
-  res.status(200).json(voice);
+    const openai = new OpenAI({
+      apiKey: apiKey,
+    });
+
+    const ttsResponse = await openai.audio.speech.create({
+      model: "tts-1",
+      input: message,
+      voice: "onyx",
+    });
+
+    const buffer = await ttsResponse.arrayBuffer();
+
+    const audioBase64 = Buffer.from(buffer).toString("base64");
+
+    res.status(200).json({ audio: `data:audio/mp3;base64,${audioBase64}` });
+  } catch (error) {
+    console.error("Error generating TTS:", error);
+    res.status(500).json({ audio: "Error generating audio." });
+  }
 }

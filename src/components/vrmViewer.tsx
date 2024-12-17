@@ -1,3 +1,4 @@
+// vrmViewer.tsx
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
@@ -6,17 +7,12 @@ import { buildUrl } from "@/utils/buildUrl";
 import { Model } from "@/features/vrmViewer/model";
 import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { useVrmStore } from "@/stores/vrmStore";
 
 function Environment() {
   const gltf = useGLTF(buildUrl("/low_poly_room.glb"));
-  
-  return (
-    <primitive 
-      object={gltf.scene} 
-      scale={1} 
-      position={[0, 0, 0]}
-    />
-  );
+
+  return <primitive object={gltf.scene} scale={1} position={[0, 0, 0]} />;
 }
 
 function VrmModel({
@@ -45,7 +41,6 @@ function VrmModel({
       const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       if (vrma) m.loadAnimation(vrma);
 
-      // Give the scene at least a frame to settle
       requestAnimationFrame(() => {
         setTimeout(() => {
           const headNode = m?.vrm?.humanoid.getNormalizedBoneNode("head");
@@ -56,7 +51,6 @@ function VrmModel({
               headWPos.y,
               camera.position.z
             );
-
             if (orbitControlsRef?.current) {
               orbitControlsRef.current.target.set(
                 headWPos.x,
@@ -70,6 +64,7 @@ function VrmModel({
       });
 
       setModel(m);
+      useVrmStore.getState().setModel(m);
     })();
 
     return () => {
@@ -77,6 +72,7 @@ function VrmModel({
         scene.remove(m.vrm.scene);
         m.unLoadVrm();
         m = null;
+        useVrmStore.getState().setModel(null);
       }
     };
   }, [url, scene, camera, orbitControlsRef]);
@@ -130,30 +126,22 @@ export default function VrmViewer() {
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
       <Canvas
         ref={canvasRef}
-        camera={{ 
+        camera={{
           position: [2, 4, 4],
           fov: 20,
           near: 0.1,
-          far: 20 
+          far: 20,
         }}
         className="h-full w-full"
       >
         <ambientLight intensity={1.2} />
-        <directionalLight 
-          intensity={0.8} 
-          position={[2, 2, 1]} 
-          castShadow
-        />
-        <directionalLight 
-          intensity={0.3} 
-          position={[-2, 2, -1]} 
+        <directionalLight intensity={0.8} position={[2, 2, 1]} castShadow />
+        <directionalLight
+          intensity={0.3}
+          position={[-2, 2, -1]}
           color="#ffffff"
         />
-        <pointLight 
-          position={[0, 2, 0]} 
-          intensity={0.5} 
-          color="#ffffff"
-        />
+        <pointLight position={[0, 2, 0]} intensity={0.5} color="#ffffff" />
         <Suspense fallback={null}>
           <Environment />
           <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />

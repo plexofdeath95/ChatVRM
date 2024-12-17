@@ -58,9 +58,9 @@ export default function Home() {
   const handleSpeakAi = useCallback(
     async (text: string, onStart?: () => void, onEnd?: () => void) => {
       const screenplay = textsToScreenplay([text], koeiroParam);
-      speakCharacter(screenplay[0], viewer, koeiromapKey, onStart, onEnd);
+      speakCharacter(screenplay[0], openAiKey, onStart, onEnd);
     },
-    [viewer, koeiromapKey, koeiroParam]
+    [koeiromapKey, koeiroParam]
   );
 
   const handleSendChat = useCallback(
