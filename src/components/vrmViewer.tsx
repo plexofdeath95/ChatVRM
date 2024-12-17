@@ -130,7 +130,12 @@ export default function VrmViewer() {
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
       <Canvas
         ref={canvasRef}
-        camera={{ position: [0, 1.3, 1.5], fov: 20, near: 0.1, far: 20 }}
+        camera={{ 
+          position: [2, 4, 4],
+          fov: 20,
+          near: 0.1,
+          far: 20 
+        }}
         className="h-full w-full"
       >
         <ambientLight intensity={0.6} />
@@ -141,12 +146,12 @@ export default function VrmViewer() {
         </Suspense>
         <OrbitControls
           ref={orbitControlsRef}
-          target={[0, 1.3, 0]}
+          target={[0, 1, 0]}
           enableDamping={true}
           dampingFactor={0.2}
           screenSpacePanning={true}
           enablePan={false}
-          maxDistance={5}
+          maxDistance={7}
           minDistance={1}
         />
       </Canvas>
