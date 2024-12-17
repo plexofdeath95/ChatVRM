@@ -92,15 +92,26 @@ function VrmModel({
 function PlaceableObject({ position }: { position: [number, number, number] }) {
   return (
     <mesh position={position}>
-      <boxGeometry args={[1, 1, 1]} />
+      <boxGeometry args={[0.3, 0.3, 0.3]} />
       <meshStandardMaterial color="hotpink" />
+    </mesh>
+  );
+}
+
+function PreviewCube({ position }: { position: [number, number, number] | null }) {
+  if (!position) return null;
+  
+  return (
+    <mesh position={position}>
+      <boxGeometry args={[0.3, 0.3, 0.3]} />
+      <meshStandardMaterial color="hotpink" opacity={0.5} transparent />
     </mesh>
   );
 }
 
 function AssetMenu({ onSelectAsset }: { onSelectAsset: () => void }) {
   return (
-    <div className="absolute top-0 right-0 bg-white/80 p-4 m-4 rounded-lg overflow-y-auto max-h-[80vh]">
+    <div className="absolute top-0 right-0 bg-black/80 p-4 m-4 rounded-lg overflow-y-auto max-h-[80vh]">
       <button
         onClick={onSelectAsset}
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -117,6 +128,7 @@ export default function VrmViewer() {
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
   const [placedObjects, setPlacedObjects] = useState<Array<[number, number, number]>>([]);
   const [isPlacementMode, setIsPlacementMode] = useState(false);
+  const [mousePosition, setMousePosition] = useState<[number, number, number] | null>(null);
 
   const handleDrop = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -175,6 +187,12 @@ export default function VrmViewer() {
     }
   };
 
+  const handlePlaneMove = (event: ThreeEvent<MouseEvent>) => {
+    if (!isPlacementMode) return;
+    event.stopPropagation();
+    setMousePosition(event.point.toArray() as [number, number, number]);
+  };
+
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
       <Canvas
@@ -207,11 +225,18 @@ export default function VrmViewer() {
           <Environment />
           <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
           
-          <mesh rotation={[-Math.PI / 2, 0, 0]} onClick={handlePlaneClick} onContextMenu={handleRightClick}>
+          <mesh 
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, 0.3, 0]}
+            onClick={handlePlaneClick} 
+            onPointerMove={handlePlaneMove}
+            onContextMenu={handleRightClick}
+          >
             <planeGeometry args={[100, 100]} />
             <meshStandardMaterial visible={false} />
           </mesh>
 
+          {isPlacementMode && <PreviewCube position={mousePosition} />}
           {placedObjects.map((position, index) => (
             <PlaceableObject key={index} position={position} />
           ))}
