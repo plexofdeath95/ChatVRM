@@ -35,7 +35,7 @@ function VrmModel({
 }
 
 export default function VrmViewer() {
-  const [vrmUrl, setVrmUrl] = useState(buildUrl("/AvatarSample_B.vrm"));
+  const [vrmUrl, setVrmUrl] = useState(buildUrl("/jin_ai16z_wif_hat.vrm"));
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
