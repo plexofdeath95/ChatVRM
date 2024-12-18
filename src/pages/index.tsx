@@ -152,6 +152,8 @@ export default function Home() {
         onChangeKoeiromapKey={setKoeiromapKey}
       /> */}
       <VrmViewer />
+
+      {/* <TransformModeUI /> */}
       <MessageInputContainer
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}

@@ -9,8 +9,9 @@ import { LowPolyRoom } from "@/model-components/LowPolyRoom";
 import { useCameraStore } from "@/stores/cameraStore";
 import ImageFrame from "./imageFrame";
 import { useSelectionStore } from "@/stores/selectionStore";
-import { TransformGizmo } from "./TransformGizmo";
+import { TransformGizmo } from "./TransformGizmo/TransformGizmo";
 import { SceneContent } from "./SceneContent";
+import { useKeyboardShortcuts } from "@/features/hooks/useKeyboardShortcuts";
 function VrmModel({
   url,
   orbitControlsRef,
@@ -73,6 +74,8 @@ export default function VrmViewer() {
       canvas.removeEventListener("drop", handleDrop);
     };
   }, [handleDrop, handleDragOver]);
+
+  useKeyboardShortcuts();
 
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">

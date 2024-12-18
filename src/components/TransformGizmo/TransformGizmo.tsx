@@ -17,6 +17,7 @@ export function TransformGizmo() {
   const setIsTransforming = useSelectionStore(
     (state) => state.setIsTransforming
   );
+  const transformMode = useSelectionStore((state) => state.transformMode);
 
   const orbitControlsRef = useCameraStore((state) => state.orbitControlsRef);
 
@@ -42,7 +43,7 @@ export function TransformGizmo() {
   return (
     <TransformControls
       ref={transformRef}
-      mode="translate"
+      mode={transformMode}
       onMouseDown={(e) => {
         setIsTransforming(true);
         if (orbitControlsRef?.current) {
