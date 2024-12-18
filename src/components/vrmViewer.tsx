@@ -1,7 +1,7 @@
 // vrmViewer.tsx
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import { buildUrl } from "@/utils/buildUrl";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useLoadVrmModel } from "@/features/vrmViewer/useLoadVrmModel";
@@ -111,6 +111,12 @@ export default function VrmViewer() {
           enablePan={true}
           maxDistance={20}
           minDistance={1}
+        />
+        <Environment
+          environmentIntensity={0.25}
+          backgroundBlurriness={0.2}
+          files="/environment/forest_slope_1k.hdr"
+          background={true}
         />
       </Canvas>
     </div>

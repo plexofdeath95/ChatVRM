@@ -5,7 +5,7 @@ Command: npx gltfjsx@6.5.3 .\public\low_poly_room_4.glb --output src/model-compo
 
 import * as THREE from "three";
 import React from "react";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useNormalTexture } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 
 type ActionName = "Animation";
@@ -74,11 +74,12 @@ type GLTFResult = GLTF & {
 
 export function LowPolyRoom(props: JSX.IntrinsicElements["group"]) {
   const { nodes, materials } = useGLTF("/low_poly_room_4.glb") as GLTFResult;
+
   return (
     <group {...props} dispose={null}>
       <group rotation={[-Math.PI / 2, 0, 0]}>
         {/* Billboard */}
-        <mesh
+        {/* <mesh
           geometry={nodes.Billboard.geometry}
           material={materials["trees.001"]}
           position={[-9.023, 2.995, 0.477]}
@@ -86,7 +87,7 @@ export function LowPolyRoom(props: JSX.IntrinsicElements["group"]) {
           scale={1.343}
           userData={{ selectable: true }}
           name="BILLBOARD"
-        />
+        /> */}
 
         {/* Bookshelf and its children */}
         <mesh
