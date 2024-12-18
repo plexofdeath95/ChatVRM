@@ -5,10 +5,11 @@ Files: .\public\low_poly_room.glb [2.92MB] > C:\Users\aaron\Documents\GitHub\Cha
 */
 
 import * as THREE from "three";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useGLTF, useAnimations, TransformControls } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useCameraStore } from "@/stores/cameraStore";
+import { Object3DEventMap } from "three";
 
 type ActionName = "Animation";
 
@@ -58,13 +59,12 @@ type GLTFResult = GLTF & {
 };
 
 export function LowPolyRoom(props: JSX.IntrinsicElements["group"]) {
-  const group = React.useRef<THREE.Group>();
+  const group = useRef<THREE.Group<Object3DEventMap>>(null);
+
   const { nodes, materials, animations } = useGLTF(
     "/low_poly_room-transformed.glb"
   ) as GLTFResult;
   const { actions } = useAnimations(animations, group);
-
-  const orbitControlsRef = useCameraStore((state) => state.orbitControlsRef);
 
   const chairGroup = useRef<THREE.Group>(null!);
 
@@ -110,39 +110,26 @@ export function LowPolyRoom(props: JSX.IntrinsicElements["group"]) {
               material={materials.LowPoly}
             />
           </group>
-          <TransformControls
-            onMouseDown={() => {
-              if (orbitControlsRef?.current) {
-                orbitControlsRef.current.enabled = false;
-              }
-            }}
-            onMouseUp={() => {
-              if (orbitControlsRef?.current) {
-                orbitControlsRef.current.enabled = true;
-              }
-            }}
-          >
-            <group ref={chairGroup}>
-              <group
-                name="Cube011_5"
-                position={[-0.896, 0.397, 0.815]}
-                rotation={[0, 0.052, 0]}
-              >
-                <mesh
-                  name="Object_14"
-                  geometry={nodes.Object_14.geometry}
-                  material={materials.LowPoly}
-                />
-              </group>
-              <group name="Chair_23" position={[-0.896, 0.397, 0.815]}>
-                <mesh
-                  name="Object_52"
-                  geometry={nodes.Object_52.geometry}
-                  material={materials.LowPoly}
-                />
-              </group>
+          <group ref={chairGroup}>
+            <group
+              name="Cube011_5"
+              position={[-0.896, 0.397, 0.815]}
+              rotation={[0, 0.052, 0]}
+            >
+              <mesh
+                name="Object_14"
+                geometry={nodes.Object_14.geometry}
+                material={materials.LowPoly}
+              />
             </group>
-          </TransformControls>
+            <group name="Chair_23" position={[-0.896, 0.397, 0.815]}>
+              <mesh
+                name="Object_52"
+                geometry={nodes.Object_52.geometry}
+                material={materials.LowPoly}
+              />
+            </group>
+          </group>
           <group name="Shelves002_39" position={[-1.704, 0.833, -1.42]}>
             <mesh
               name="Object_91"
