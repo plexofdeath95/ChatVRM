@@ -59,3 +59,6 @@ ChatVRM uses Koemotion's Koeiromap API for text-to-speech conversion of response
 For the specifications and terms of use of the Koeiromap API, please refer to the following links and the official website:
 
 - [https://koemotion.rinna.co.jp/](https://koemotion.rinna.co.jp/)
+
+## Credits
+The 3D room model used in this project is provided by [Spark Games](https://spark-games.co.uk/) under the Creative Commons Attribution (CC-BY) license.
