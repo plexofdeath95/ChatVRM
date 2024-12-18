@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import * as THREE from "three";
 import { ThreeElements } from "@react-three/fiber";
+import OpenAI from "openai";
 
 export default function ImageFrame({
   position,
@@ -13,11 +14,44 @@ export default function ImageFrame({
 }) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
+  const analyzeImage = async (file: File) => {
+    try {
+      const base64Image = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      const openai = new OpenAI({
+        apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "What's in this image?" },
+              { type: "image_url", image_url: { url: base64Image } },
+            ],
+          },
+        ],
+        max_tokens: 300,
+      });
+
+      console.log("GPT Vision Analysis:", response.choices[0].message.content);
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+    }
+  };
+
   const handleClick = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         const url = URL.createObjectURL(file);
@@ -26,6 +60,7 @@ export default function ImageFrame({
           setTexture(newTexture);
           URL.revokeObjectURL(url);
         });
+        await analyzeImage(file);
       }
     };
     input.click();
