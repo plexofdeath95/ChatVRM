@@ -82,7 +82,7 @@ export default function VrmViewer() {
           position: [2, 4, 4],
           fov: 20,
           near: 0.1,
-          far: 20,
+          far: 500,
         }}
         className="h-full w-full"
       >
@@ -98,7 +98,7 @@ export default function VrmViewer() {
         <Suspense fallback={null}>
           <SceneContent />
         </Suspense>
-        <TransformGizmo orbitControlsRef={orbitControlsRef} />
+        <TransformGizmo />
         <OrbitControls
           ref={orbitControlsRef}
           target={[0, 1, 0]}
@@ -106,7 +106,7 @@ export default function VrmViewer() {
           dampingFactor={0.2}
           screenSpacePanning={true}
           enablePan={true}
-          maxDistance={12}
+          maxDistance={20}
           minDistance={1}
         />
       </Canvas>

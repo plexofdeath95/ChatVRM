@@ -1,21 +1,47 @@
+// src/components/SceneContent.tsx
+
+import React, { useCallback, useEffect, useRef } from "react";
+import { useSelectionStore } from "@/stores/selectionStore";
 import { LowPolyRoom } from "@/model-components/LowPolyRoom";
 import ImageFrame from "./imageFrame";
-import { useSelectionStore } from "@/stores/selectionStore";
-import { useCallback, useEffect, useRef } from "react";
-import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
-export function SceneContent({ children }: { children?: React.ReactNode }) {
+export function SceneContent() {
   const selectObject = useSelectionStore((state) => state.selectObject);
   const clearSelection = useSelectionStore((state) => state.clearSelection);
+  const isTransforming = useSelectionStore((state) => state.isTransforming);
+
+  const isTransformingRef = useRef(isTransforming);
+
+  useEffect(() => {
+    isTransformingRef.current = isTransforming;
+  }, [isTransforming]);
 
   const onPointerDown = useCallback(
     (e: any) => {
-      if (e.intersections.length > 0) {
-        console.log(e);
-        selectObject(e.intersections[0].object);
-      } else {
-        clearSelection();
-      }
+      setTimeout(() => {
+        if (isTransformingRef.current) {
+          return;
+        }
+
+        e.stopPropagation();
+
+        if (e.intersections.length > 0) {
+          const intersectedObject = e.intersections[0].object;
+
+          let parent = intersectedObject;
+          while (parent) {
+            if (parent.userData.selectable) {
+              selectObject(parent);
+              return;
+            }
+            parent = parent.parent;
+          }
+
+          clearSelection();
+        } else {
+          clearSelection();
+        }
+      }, 100);
     },
     [selectObject, clearSelection]
   );
