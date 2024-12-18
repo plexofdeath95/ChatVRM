@@ -1,29 +1,14 @@
 // vrmViewer.tsx
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import {
-  Box,
-  DragControls,
-  OrbitControls,
-  TransformControls,
-  useGLTF,
-} from "@react-three/drei";
-import { Vector3 } from "three";
+import { OrbitControls } from "@react-three/drei";
 import { buildUrl } from "@/utils/buildUrl";
-import { Model } from "@/features/vrmViewer/model";
-import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useLoadVrmModel } from "@/features/vrmViewer/useLoadVrmModel";
 import { LowPolyRoom } from "@/model-components/LowPolyRoom";
 import { useCameraStore } from "@/stores/cameraStore";
-
-function VrmModel({
-  url,
-  orbitControlsRef,
-}: {
-  url: string;
-  orbitControlsRef: React.RefObject<OrbitControlsImpl>;
-}) {
+import ImageFrame from "./imageFrame";
+function VrmModel({ url, orbitControlsRef }: { url: string; orbitControlsRef: React.RefObject<OrbitControlsImpl> }) {
   const { scene, camera } = useThree();
   const model = useLoadVrmModel({ url, scene, camera, orbitControlsRef });
 
@@ -39,9 +24,7 @@ export default function VrmViewer() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
-  const setOrbitControlsRef = useCameraStore(
-    (state) => state.setOrbitControlsRef
-  );
+  const setOrbitControlsRef = useCameraStore((state) => state.setOrbitControlsRef);
 
   useEffect(() => {
     setOrbitControlsRef(orbitControlsRef);
@@ -94,11 +77,7 @@ export default function VrmViewer() {
       >
         <ambientLight intensity={1.2} />
         <directionalLight intensity={0.8} position={[2, 2, 1]} castShadow />
-        <directionalLight
-          intensity={0.3}
-          position={[-2, 2, -1]}
-          color="#ffffff"
-        />
+        <directionalLight intensity={0.3} position={[-2, 2, -1]} color="#ffffff" />
         <pointLight position={[0, 2, 0]} intensity={0.5} color="#ffffff" />
         <Suspense fallback={null}>
           <LowPolyRoom />
@@ -106,17 +85,9 @@ export default function VrmViewer() {
           {/* <TransformControls>
             <Box />
           </TransformControls> */}
+          <ImageFrame position={[-0.4, 0.4, -2.4]} scale={[1, 1, 0.1]} />
         </Suspense>
-        <OrbitControls
-          ref={orbitControlsRef}
-          target={[0, 1, 0]}
-          enableDamping={true}
-          dampingFactor={0.2}
-          screenSpacePanning={true}
-          enablePan={true}
-          maxDistance={12}
-          minDistance={1}
-        />
+        <OrbitControls ref={orbitControlsRef} target={[0, 1, 0]} enableDamping={true} dampingFactor={0.2} screenSpacePanning={true} enablePan={true} maxDistance={12} minDistance={1} />
       </Canvas>
     </div>
   );
