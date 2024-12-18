@@ -57,6 +57,16 @@ export default function ImageFrame({
         const url = URL.createObjectURL(file);
         const loader = new THREE.TextureLoader();
         loader.load(url, (newTexture) => {
+          const imageAspect = newTexture.image.width / newTexture.image.height;
+          const baseWidth = scale[0];
+          const baseHeight = scale[1];
+          
+          if (imageAspect > baseWidth / baseHeight) {
+            newTexture.userData = { width: baseWidth, height: baseWidth / imageAspect };
+          } else {
+            newTexture.userData = { width: baseHeight * imageAspect, height: baseHeight };
+          }
+          
           setTexture(newTexture);
           URL.revokeObjectURL(url);
         });
@@ -64,12 +74,15 @@ export default function ImageFrame({
       }
     };
     input.click();
-  }, []);
+  }, [scale]);
 
   return (
     <group position={position} rotation={rotation}>
       <mesh position={scale} onClick={handleClick}>
-        <planeGeometry args={[scale[0], scale[1]]} />
+        <planeGeometry args={[
+          texture?.userData?.width || scale[0],
+          texture?.userData?.height || scale[1]
+        ]} />
         <meshBasicMaterial map={texture} color={texture ? undefined : "#ffffff"} />
       </mesh>
     </group>
