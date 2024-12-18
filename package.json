@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@charcoal-ui/icons": "^2.6.0",
+    "@charcoal-ui/icons": "^3.4.0",
     "@react-three/drei": "^9.114.6",
     "@react-three/fiber": "^8.17.10",
     "@tailwindcss/line-clamp": "^0.4.4",
@@ -22,12 +22,13 @@
     "openai": "^4.73.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-icons": "^5.4.0",
     "three": "^0.169.0",
     "typescript": "5.0.2",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@charcoal-ui/tailwind-config": "^2.6.0",
+    "@charcoal-ui/tailwind-config": "^3.16.0",
     "@gltf-transform/core": "^2.4.6",
     "@pixiv/three-vrm": "^3.1.4",
     "@types/node": "18.15.10",
@@ -36,7 +37,7 @@
     "@types/three": "^0.169.0",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.1"
+    "tailwindcss": "^3.4.3"
   },
   "engines": {
     "node": ">=18.19.0"

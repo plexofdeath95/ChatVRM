@@ -8,7 +8,17 @@ import { useLoadVrmModel } from "@/features/vrmViewer/useLoadVrmModel";
 import { LowPolyRoom } from "@/model-components/LowPolyRoom";
 import { useCameraStore } from "@/stores/cameraStore";
 import ImageFrame from "./imageFrame";
-function VrmModel({ url, orbitControlsRef }: { url: string; orbitControlsRef: React.RefObject<OrbitControlsImpl> }) {
+import { useSelectionStore } from "@/stores/selectionStore";
+import { TransformGizmo } from "./TransformGizmo/TransformGizmo";
+import { SceneContent } from "./SceneContent";
+import { useKeyboardShortcuts } from "@/features/hooks/useKeyboardShortcuts";
+function VrmModel({
+  url,
+  orbitControlsRef,
+}: {
+  url: string;
+  orbitControlsRef: React.RefObject<OrbitControlsImpl>;
+}) {
   const { scene, camera } = useThree();
   const model = useLoadVrmModel({ url, scene, camera, orbitControlsRef });
 
@@ -24,7 +34,9 @@ export default function VrmViewer() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
-  const setOrbitControlsRef = useCameraStore((state) => state.setOrbitControlsRef);
+  const setOrbitControlsRef = useCameraStore(
+    (state) => state.setOrbitControlsRef
+  );
 
   useEffect(() => {
     setOrbitControlsRef(orbitControlsRef);
@@ -63,6 +75,8 @@ export default function VrmViewer() {
     };
   }, [handleDrop, handleDragOver]);
 
+  useKeyboardShortcuts();
+
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
       <Canvas
@@ -71,23 +85,33 @@ export default function VrmViewer() {
           position: [2, 4, 4],
           fov: 20,
           near: 0.1,
-          far: 20,
+          far: 500,
         }}
         className="h-full w-full"
       >
         <ambientLight intensity={1.2} />
         <directionalLight intensity={0.8} position={[2, 2, 1]} castShadow />
-        <directionalLight intensity={0.3} position={[-2, 2, -1]} color="#ffffff" />
+        <directionalLight
+          intensity={0.3}
+          position={[-2, 2, -1]}
+          color="#ffffff"
+        />
         <pointLight position={[0, 2, 0]} intensity={0.5} color="#ffffff" />
+        <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
         <Suspense fallback={null}>
-          <LowPolyRoom />
-          <VrmModel url={vrmUrl} orbitControlsRef={orbitControlsRef} />
-          {/* <TransformControls>
-            <Box />
-          </TransformControls> */}
-          <ImageFrame position={[-0.4, 0.4, -2.4]} scale={[1, 1, 0.1]} />
+          <SceneContent />
         </Suspense>
-        <OrbitControls ref={orbitControlsRef} target={[0, 1, 0]} enableDamping={true} dampingFactor={0.2} screenSpacePanning={true} enablePan={true} maxDistance={12} minDistance={1} />
+        <TransformGizmo />
+        <OrbitControls
+          ref={orbitControlsRef}
+          target={[0, 1, 0]}
+          enableDamping={true}
+          dampingFactor={0.2}
+          screenSpacePanning={true}
+          enablePan={true}
+          maxDistance={20}
+          minDistance={1}
+        />
       </Canvas>
     </div>
   );
