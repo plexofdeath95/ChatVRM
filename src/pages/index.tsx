@@ -11,6 +11,7 @@ import { Introduction } from "@/components/introduction";
 import { Menu } from "@/components/menu";
 import { Meta } from "@/components/meta";
 import { useUI } from "@/stores/uiStore";
+import { useInteractableStore } from "@/stores/interactionStores";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -141,6 +142,21 @@ export default function Home() {
     },
     [systemPrompt, chatLog, openAiKey, handleSpeakAi, inputRef]
   );
+
+  useEffect(() => {
+    const unsubscribe = useInteractableStore.subscribe((state) => {
+      const lastInteractedId = state.lastInteractedId;
+      if (!lastInteractedId) return;
+      
+      const description = useInteractableStore.getState().getLastInteractedDescription();
+      if (!description) return;
+
+      const contextMessage = `${description}`;
+      void handleSendChat(contextMessage);
+    });
+
+    return () => unsubscribe();
+  }, [handleSendChat]);
 
   return (
     <div className={"font-M_PLUS_2"}>
