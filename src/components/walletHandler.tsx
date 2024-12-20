@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction, TransactionSignature } from "@solana/web3.js";
+import { TextButton } from "./textButton";
 
 export default function WalletHandler() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [walletConnected, setWalletConnected] = useState<boolean>(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [tipAmount, setTipAmount] = useState<string>("0.0000001");
+  const [tipAmount, setTipAmount] = useState<string>("0.001");
 
   const transactionConfig: TransactionConfig = {
-    recipientAddress: "2q77Erj5bakpguPCAqb4P3A8UmkSjzkyNagM5sNBsS9g",
+    recipientAddress: "E8kuexmdYrtSh1WNw2nLsgh4uKzvf31vAp4waL6TcBP6",
     amountToSend: parseFloat(tipAmount),
   };
 
@@ -81,29 +82,28 @@ export default function WalletHandler() {
     <>
       <div className="fixed bg-white p-3 rounded-lg shadow-md z-[5000] top-0 right-0">
         {!walletConnected ? (
-          <button 
+          <TextButton 
             onClick={connect} 
-            className="mr-2 px-4 py-2 border border-gray-300 rounded bg-white text-black cursor-pointer hover:bg-gray-100"
+            className="mr-2"
             type="button"
           >
             Connect
-          </button>
+          </TextButton>
         ) : (
           <>
-            <button 
+            <TextButton 
               onClick={disconnect}
-              className="mr-2 px-4 py-2 border border-gray-300 rounded bg-white text-black cursor-pointer hover:bg-gray-100"
+              className="mr-2"
               type="button"
             >
               Disconnect
-            </button>
-            <button
+            </TextButton>
+            <TextButton
               onClick={() => setShowModal(true)}
-              className="px-4 py-2 border border-gray-300 rounded bg-white text-black cursor-pointer hover:bg-gray-100"
               type="button"
             >
               Tip
-            </button>
+            </TextButton>
           </>
         )}
         {connectError && <p className="text-red-600 mt-2">{connectError}</p>}
@@ -122,18 +122,16 @@ export default function WalletHandler() {
               min="0"
             />
             <div className="flex justify-evenly">
-              <button
+              <TextButton
                 onClick={handleTip}
-                className="px-4 py-2 border border-gray-300 rounded text-black hover:bg-gray-100"
               >
                 Confirm
-              </button>
-              <button
+              </TextButton>
+              <TextButton
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded text-black hover:bg-gray-100"
               >
                 Cancel
-              </button>
+              </TextButton>
             </div>
           </div>
         </div>
