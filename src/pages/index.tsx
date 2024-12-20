@@ -143,20 +143,88 @@ export default function Home() {
     [systemPrompt, chatLog, openAiKey, handleSpeakAi, inputRef]
   );
 
+  const handleDirectAiResponse = useCallback(
+    async (prompt: string) => {
+      if (!openAiKey) {
+        setAssistantMessage("API key has not been entered");
+        return;
+      }
+      if (!prompt) return;
+
+      setChatProcessing(true);
+
+      const messages: Message[] = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt }
+      ];
+
+      let stream: ReadableStream<string> | null = null;
+      try {
+        stream = await getChatResponseStream(messages, openAiKey);
+      } catch (error) {
+        console.error("Error fetching the stream:", error);
+        setAssistantMessage("Error fetching response. Check your API key.");
+        setChatProcessing(false);
+        return;
+      }
+
+      if (!stream) {
+        setAssistantMessage("No response from API");
+        setChatProcessing(false);
+        return;
+      }
+
+      const reader = stream.getReader();
+      let fullAssistantResponse = "";
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          if (value) {
+            fullAssistantResponse += value;
+            setAssistantMessage(fullAssistantResponse.trim());
+          }
+        }
+      } catch (e) {
+        console.error("Error while reading the stream:", e);
+        setAssistantMessage("Error reading the response stream.");
+      } finally {
+        reader.releaseLock();
+      }
+
+      const finalResponse = fullAssistantResponse.trim();
+      
+      setChatLog(prevLog => [...prevLog, { role: "assistant", content: finalResponse }]);
+      
+      await handleSpeakAi(finalResponse);
+
+      setChatProcessing(false);
+    },
+    [systemPrompt, chatLog, openAiKey, handleSpeakAi]
+  );
+
   useEffect(() => {
+    let isProcessing = false;
+
     const unsubscribe = useInteractableStore.subscribe((state) => {
       const lastInteractedId = state.lastInteractedId;
-      if (!lastInteractedId) return;
+      if (!lastInteractedId || isProcessing) return;
       
       const description = useInteractableStore.getState().getLastInteractedDescription();
       if (!description) return;
 
+      isProcessing = true;
       const contextMessage = `${description}`;
-      void handleSendChat(contextMessage);
+      
+      void handleDirectAiResponse(contextMessage).finally(() => {
+        isProcessing = false;
+      });
     });
 
     return () => unsubscribe();
-  }, [handleSendChat]);
+  }, [handleDirectAiResponse]);
 
   return (
     <div className={"font-M_PLUS_2"}>
