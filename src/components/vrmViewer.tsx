@@ -16,6 +16,7 @@ import { useScreenshotStore } from "@/stores/screenshotStore";
 import * as THREE from "three";
 import { SceneScreenshotManager } from "./SceneScreenshotManager";
 import { SceneScreenshotHandler } from "./SceneScreenshotHandler";
+import WalletHandler from "./walletHandler";
 
 function VrmModel({
   url,
@@ -84,6 +85,7 @@ export default function VrmViewer() {
 
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
+      <WalletHandler />
       <Canvas
         ref={canvasRef}
         camera={{

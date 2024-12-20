@@ -5,10 +5,12 @@ export default function WalletHandler() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [walletConnected, setWalletConnected] = useState<boolean>(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [tipAmount, setTipAmount] = useState<string>("0.0000001");
 
   const transactionConfig: TransactionConfig = {
-    recipientAddress: "",
-    amountToSend: 0.01,
+    recipientAddress: "2q77Erj5bakpguPCAqb4P3A8UmkSjzkyNagM5sNBsS9g",
+    amountToSend: parseFloat(tipAmount),
   };
 
   const connect = async (): Promise<void> => {
@@ -28,7 +30,22 @@ export default function WalletHandler() {
     }
   };
 
-  const send = async (): Promise<void> => {
+  const disconnect = async (): Promise<void> => {
+    if (window.solana) {
+      try {
+        await window.solana.disconnect();
+        setWalletAddress(null);
+        setWalletConnected(false);
+        setConnectError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        setConnectError(errorMessage);
+        console.error(err);
+      }
+    }
+  };
+
+  const handleTip = async (): Promise<void> => {
     if (walletConnected && window.solana && walletAddress) {
       try {
         const connection = new Connection("https://api.devnet.solana.com");
@@ -50,6 +67,7 @@ export default function WalletHandler() {
         console.log("Transaction signature", signature);
 
         await connection.confirmTransaction(signature);
+        setShowModal(false);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error("Error sending transaction:", errorMessage);
@@ -60,20 +78,67 @@ export default function WalletHandler() {
   };
 
   return (
-    <div className="space-x-4 z-50">
-      <button onClick={connect} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" type="button">
-        Connect
-      </button>
-      <button
-        onClick={send}
-        disabled={!walletConnected}
-        className={`px-4 py-2 rounded transition-colors ${walletConnected ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
-        type="button"
-      >
-        Send
-      </button>
-      {connectError && <p className="mt-2 text-red-500">{connectError}</p>}
-    </div>
+    <>
+      <div className="fixed bg-white p-3 rounded-lg shadow-md z-[5000] top-0 right-0">
+        {!walletConnected ? (
+          <button 
+            onClick={connect} 
+            className="mr-2 px-4 py-2 border border-gray-300 rounded bg-white text-black cursor-pointer hover:bg-gray-100"
+            type="button"
+          >
+            Connect
+          </button>
+        ) : (
+          <>
+            <button 
+              onClick={disconnect}
+              className="mr-2 px-4 py-2 border border-gray-300 rounded bg-white text-black cursor-pointer hover:bg-gray-100"
+              type="button"
+            >
+              Disconnect
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-4 py-2 border border-gray-300 rounded bg-white text-black cursor-pointer hover:bg-gray-100"
+              type="button"
+            >
+              Tip
+            </button>
+          </>
+        )}
+        {connectError && <p className="text-red-600 mt-2">{connectError}</p>}
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8">
+            <h3 className="text-lg font-semibold mb-4 text-black">Enter Tip Amount</h3>
+            <input
+              type="number"
+              value={tipAmount}
+              onChange={(e) => setTipAmount(e.target.value)}
+              className="w-full p-4 border border-gray-300 rounded mb-4 text-black"
+              step="0.0000001"
+              min="0"
+            />
+            <div className="flex justify-evenly">
+              <button
+                onClick={handleTip}
+                className="px-4 py-2 border border-gray-300 rounded text-black hover:bg-gray-100"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded text-black hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
