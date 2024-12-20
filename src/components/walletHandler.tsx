@@ -76,9 +76,12 @@ export default function WalletHandler() {
         const signature: TransactionSignature = await connection.sendRawTransaction(signedTransaction.serialize());
         
         const explorerLink = `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+        
+        handleCloseModal();
+        
         setTransactionStatus(
           <span>
-            Confirming transaction... <a href={explorerLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View in Explorer</a>
+            Transaction sent! <a href={explorerLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View in Explorer</a>
           </span>
         );
         
