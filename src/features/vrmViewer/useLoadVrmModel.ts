@@ -32,6 +32,8 @@ export function useLoadVrmModel({
           obj.frustumCulled = false;
         });
 
+        m.vrm.scene.position.set(0, 0.15, 0);
+
         scene.add(m.vrm.scene);
 
         const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));

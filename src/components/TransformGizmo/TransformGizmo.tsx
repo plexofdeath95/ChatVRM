@@ -24,6 +24,7 @@ export function TransformGizmo() {
 
   const transformRef = useRef<any>(null);
   const { addObject, updateObject, updateNeighbors, setLastInteracted } = useInteractableStore();
+
   useEffect(() => {
     const controls = transformRef.current;
     if (!controls) return;
@@ -34,7 +35,6 @@ export function TransformGizmo() {
         "TransformGizmo: Attached to",
         selectedObject.name || selectedObject.type
       );
-      //move the add here, create the metadata
       const objectMetadata = {
         id: selectedObject.name,
         position: selectedObject.position,
@@ -73,7 +73,6 @@ export function TransformGizmo() {
             recentlyInteracted: true,
             neighbors: [],
           };
-          //addObject(objectMetadata);
           updateObject(selectedObject.name, objectMetadata);
           updateNeighbors();
           setLastInteracted(selectedObject.name);
