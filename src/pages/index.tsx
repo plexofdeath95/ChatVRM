@@ -12,6 +12,8 @@ import { Menu } from "@/components/menu";
 import { Meta } from "@/components/meta";
 import { useUI } from "@/stores/uiStore";
 import { useInteractableStore } from "@/stores/interactionStores";
+import { useScreenshotStore } from "@/stores/screenshotStore";
+import { DebugScreenshot } from "@/components/DebugScreenshot";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -73,6 +75,7 @@ export default function Home() {
       if (!userInput) return;
 
       setChatProcessing(true);
+      //useScreenshotStore.getState().takeScreenshot();
 
       const updatedChatLog: Message[] = [
         ...chatLog,
@@ -80,9 +83,21 @@ export default function Home() {
       ];
       setChatLog(updatedChatLog);
 
+      const lastMessages = chatLog.slice(-10);
+      const chatContext = lastMessages.map(msg => 
+        `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+      ).join('\n');
+
+      const screenshot = useScreenshotStore.getState().lastScreenshot;
       const messages: Message[] = [
         { role: "system", content: systemPrompt },
-        ...updatedChatLog,
+        { role: "system", content: `Here are the last ${lastMessages.length} messages from chat history:\n${chatContext}\n\nCurrent user message:` },
+        { 
+          role: "user", 
+          content: screenshot 
+            ? `${userInput}\n<image>${screenshot}</image>`
+            : userInput 
+        }
       ];
 
       let stream: ReadableStream<string> | null = null;
@@ -131,6 +146,7 @@ export default function Home() {
       await handleSpeakAi(finalResponse);
 
       setChatProcessing(false);
+      useScreenshotStore.getState().setLastScreenshot(null);
 
       setTimeout(() => {
         if (inputRef?.current) {
@@ -153,9 +169,22 @@ export default function Home() {
 
       setChatProcessing(true);
 
+      const lastMessages = chatLog.slice(-10);
+      const chatContext = lastMessages.map(msg => 
+        `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+      ).join('\n');
+
+      const screenshot = useScreenshotStore.getState().lastScreenshot;
       const messages: Message[] = [
         { role: "system", content: systemPrompt },
-        { role: "user", content: prompt }
+        { role: "system", content: `Here are the last ${lastMessages.length} messages from chat history:\n${chatContext}` },
+        { role: "system", content: "You are the character in the image. You are the character in the middle of the scene. this is actually a system message." },
+        { 
+          role: "user", 
+          content: screenshot 
+            ? `${prompt} this is what the scene looks like, YOU are in the middle of the scene, the character with the orange hat. this is actually a system message.\n<image>${screenshot}</image>`
+            : prompt
+        }
       ];
 
       let stream: ReadableStream<string> | null = null;
@@ -207,22 +236,26 @@ export default function Home() {
 
   useEffect(() => {
     let isProcessing = false;
-
+  
     const unsubscribe = useInteractableStore.subscribe((state) => {
       const lastInteractedId = state.lastInteractedId;
       if (!lastInteractedId || isProcessing) return;
       
       const description = useInteractableStore.getState().getLastInteractedDescription();
       if (!description) return;
-
+  
       isProcessing = true;
-      const contextMessage = `${description}`;
+      
+      const screenshot = useScreenshotStore.getState().lastScreenshot;
+      const contextMessage = `${description}\n${screenshot ? `[Scene Screenshot: ${screenshot}]` : ''}`;
       
       void handleDirectAiResponse(contextMessage).finally(() => {
         isProcessing = false;
+        useScreenshotStore.getState().setLastScreenshot(null);
       });
+      useInteractableStore.getState().clearInteractions();
     });
-
+  
     return () => unsubscribe();
   }, [handleDirectAiResponse]);
 
@@ -258,6 +291,7 @@ export default function Home() {
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
         onChangeKoeiromapKey={setKoeiromapKey}
       />
+      <DebugScreenshot />
     </div>
   );
 }

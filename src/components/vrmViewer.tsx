@@ -1,7 +1,7 @@
 // vrmViewer.tsx
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { buildUrl } from "@/utils/buildUrl";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useLoadVrmModel } from "@/features/vrmViewer/useLoadVrmModel";
@@ -12,6 +12,11 @@ import { useSelectionStore } from "@/stores/selectionStore";
 import { TransformGizmo } from "./TransformGizmo/TransformGizmo";
 import { SceneContent } from "./SceneContent";
 import { useKeyboardShortcuts } from "@/features/hooks/useKeyboardShortcuts";
+import { useScreenshotStore } from "@/stores/screenshotStore";
+import * as THREE from "three";
+import { SceneScreenshotManager } from "./SceneScreenshotManager";
+import { SceneScreenshotHandler } from "./SceneScreenshotHandler";
+
 function VrmModel({
   url,
   orbitControlsRef,
@@ -76,6 +81,12 @@ export default function VrmViewer() {
   }, [handleDrop, handleDragOver]);
 
   useKeyboardShortcuts();
+  useEffect(() => {
+    const screenshotCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    screenshotCamera.position.set(0, 1.5, 3);
+    screenshotCamera.lookAt(0, 1, 0);
+    useScreenshotStore.getState().setScreenshotCamera(screenshotCamera);
+  }, []);
 
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
@@ -118,7 +129,9 @@ export default function VrmViewer() {
           files="/environment/forest_slope_1k.hdr"
           background={true}
         />
+        <SceneScreenshotHandler />
       </Canvas>
+      <SceneScreenshotManager />
     </div>
   );
 }

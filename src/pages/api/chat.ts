@@ -21,9 +21,31 @@ export default async function handler(
       apiKey: apiKey,
     });
 
+    // Transform messages to include image content if present
+    const messages = req.body.messages.map((msg: { content: { includes: (arg0: string) => any; split: (arg0: string) => [any, any]; }; role: any; }) => {
+      if (msg.content.includes('<image>')) {
+        const [text, imageData] = msg.content.split('<image>');
+        const base64Image = imageData.split('</image>')[0];
+        console.log(base64Image.length);
+        return {
+          role: msg.role,
+          content: [
+            { type: "text", text: text },
+            { 
+              type: "image_url", 
+              image_url: { 
+                url: base64Image 
+              }
+            }
+          ]
+        };
+      }
+      return msg;
+    });
+
     const chatResponse = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: req.body.messages,
+      model: "gpt-4o-mini",
+      messages,
       max_tokens: 200,
     });
 
