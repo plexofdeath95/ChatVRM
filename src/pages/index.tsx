@@ -262,12 +262,14 @@ export default function Home() {
   return (
     <div className={"font-M_PLUS_2"}>
       <Meta />
-      {/* <Introduction
-        openAiKey={openAiKey}
-        koeiroMapKey={koeiromapKey}
-        onChangeAiKey={setOpenAiKey}
-        onChangeKoeiromapKey={setKoeiromapKey}
-      /> */}
+      {!process.env.NEXT_PUBLIC_OPENAI_API_KEY && (
+        <Introduction 
+          openAiKey={openAiKey} 
+          koeiroMapKey={koeiromapKey} 
+          onChangeAiKey={setOpenAiKey} 
+          onChangeKoeiromapKey={setKoeiromapKey} 
+        />
+      )}
       <VrmViewer />
 
       {/* <TransformModeUI /> */}
