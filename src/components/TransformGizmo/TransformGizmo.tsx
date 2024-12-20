@@ -7,6 +7,7 @@ import { useSelectionStore } from "@/stores/selectionStore";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import * as THREE from "three";
 import { useCameraStore } from "@/stores/cameraStore";
+import { useInteractableStore } from "@/stores/interactionStores";
 
 type TransformGizmoProps = {
   orbitControlsRef: React.RefObject<OrbitControlsImpl>;
@@ -22,6 +23,7 @@ export function TransformGizmo() {
   const orbitControlsRef = useCameraStore((state) => state.orbitControlsRef);
 
   const transformRef = useRef<any>(null);
+  const { addObject, updateObject, updateNeighbors, setLastInteracted } = useInteractableStore();
 
   useEffect(() => {
     const controls = transformRef.current;
@@ -33,12 +35,20 @@ export function TransformGizmo() {
         "TransformGizmo: Attached to",
         selectedObject.name || selectedObject.type
       );
+      const objectMetadata = {
+        id: selectedObject.name,
+        position: selectedObject.position,
+        rotation: selectedObject.rotation,
+        recentlyInteracted: true,
+        neighbors: [],
+      };
+      addObject(objectMetadata);
       console.log(selectedObject);
     } else {
       controls.detach();
       console.log("TransformGizmo: Detached");
     }
-  }, [selectedObject]);
+  }, [addObject, selectedObject]);
 
   return (
     <TransformControls
@@ -54,6 +64,18 @@ export function TransformGizmo() {
         setIsTransforming(false);
         if (orbitControlsRef?.current) {
           orbitControlsRef.current.enabled = true;
+        }
+        if (selectedObject) {
+          const objectMetadata = {
+            id: selectedObject.name,
+            position: selectedObject.position,
+            rotation: selectedObject.rotation,
+            recentlyInteracted: true,
+            neighbors: [],
+          };
+          updateObject(selectedObject.name, objectMetadata);
+          updateNeighbors();
+          setLastInteracted(selectedObject.name);
         }
       }}
     />
