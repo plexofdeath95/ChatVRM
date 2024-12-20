@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction, TransactionSignature } from "@solana/web3.js";
 import { TextButton } from "./textButton";
+import { IconButton } from "./iconButton";
 
 export default function WalletHandler() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -80,58 +81,56 @@ export default function WalletHandler() {
 
   return (
     <>
-      <div className="fixed bg-white p-3 rounded-lg shadow-md z-[5000] top-0 right-0">
-        {!walletConnected ? (
-          <TextButton 
-            onClick={connect} 
-            className="mr-2"
-            type="button"
-          >
-            Connect
-          </TextButton>
-        ) : (
-          <>
-            <TextButton 
-              onClick={disconnect}
-              className="mr-2"
-              type="button"
-            >
-              Disconnect
-            </TextButton>
-            <TextButton
-              onClick={() => setShowModal(true)}
-              type="button"
-            >
-              Tip
-            </TextButton>
-          </>
+      <div className="absolute z-10 m-24 right-0">
+        <div className="grid grid-flow-col gap-[8px]">
+          {!walletConnected ? (
+            <IconButton
+              iconName="24/Menu"
+              label="Connect"
+              isProcessing={false}
+              onClick={connect}
+            />
+          ) : (
+            <>
+              <IconButton
+                iconName="24/Menu"
+                label="Disconnect"
+                isProcessing={false}
+                onClick={disconnect}
+              />
+              <IconButton
+                iconName="24/CommentOutline"
+                label="Tip"
+                isProcessing={false}
+                onClick={() => setShowModal(true)}
+              />
+            </>
+          )}
+        </div>
+        {connectError && (
+          <div className="mt-2 px-16 py-8 bg-white rounded-8">
+            <div className="typography-16 font-bold text-secondary">{connectError}</div>
+          </div>
         )}
-        {connectError && <p className="text-red-600 mt-2">{connectError}</p>}
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8">
-            <h3 className="text-lg font-semibold mb-4 text-black">Enter Tip Amount</h3>
+        <div className="absolute z-40 w-full h-full bg-black/30 backdrop-blur flex items-center justify-center font-M_PLUS_2">
+          <div className="mx-auto max-w-sm p-24 bg-white rounded-16">
+            <div className="my-16 typography-20 font-bold">
+              Enter Tip Amount
+            </div>
             <input
               type="number"
               value={tipAmount}
               onChange={(e) => setTipAmount(e.target.value)}
-              className="w-full p-4 border border-gray-300 rounded mb-4 text-black"
+              className="px-16 py-8 w-full bg-surface1 hover:bg-surface1-hover rounded-8 text-text-primary typography-16 font-bold border-2 border-black"
               step="0.0000001"
               min="0"
             />
-            <div className="flex justify-evenly">
-              <TextButton
-                onClick={handleTip}
-              >
-                Confirm
-              </TextButton>
-              <TextButton
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </TextButton>
+            <div className="mt-24 grid grid-flow-col gap-[8px]">
+              <TextButton onClick={handleTip}>Confirm</TextButton>
+              <TextButton onClick={() => setShowModal(false)}>Cancel</TextButton>
             </div>
           </div>
         </div>
