@@ -81,12 +81,6 @@ export default function VrmViewer() {
   }, [handleDrop, handleDragOver]);
 
   useKeyboardShortcuts();
-  useEffect(() => {
-    const screenshotCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-    screenshotCamera.position.set(0, 1.5, 3);
-    screenshotCamera.lookAt(0, 1, 0);
-    useScreenshotStore.getState().setScreenshotCamera(screenshotCamera);
-  }, []);
 
   return (
     <div className="absolute top-0 left-0 w-screen h-[100svh] -z-10">
