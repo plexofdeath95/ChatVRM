@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef } from "react";
 import { useSelectionStore } from "@/stores/selectionStore";
+import { useInteractableStore } from "@/stores/interactionStores";
 import { LowPolyRoom } from "@/model-components/LowPolyRoom";
 import ImageFrame from "./imageFrame";
 
@@ -9,6 +10,7 @@ export function SceneContent() {
   const selectObject = useSelectionStore((state) => state.selectObject);
   const clearSelection = useSelectionStore((state) => state.clearSelection);
   const isTransforming = useSelectionStore((state) => state.isTransforming);
+  const setLastInteracted = useInteractableStore((state) => state.setLastInteracted);
 
   const isTransformingRef = useRef(isTransforming);
 
@@ -32,6 +34,7 @@ export function SceneContent() {
           while (parent) {
             if (parent.userData.selectable) {
               selectObject(parent);
+              //setLastInteracted(parent.name);
               return;
             }
             parent = parent.parent;
@@ -43,7 +46,7 @@ export function SceneContent() {
         }
       }, 100);
     },
-    [selectObject, clearSelection]
+    [selectObject, clearSelection, setLastInteracted]
   );
 
   useEffect(() => {

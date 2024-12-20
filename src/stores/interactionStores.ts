@@ -260,9 +260,9 @@ export const useInteractableStore = create<InteractableStore>((set, get) => ({
       ?.map(neighbor => `${neighbor.id}: - ${neighbor.relativePosition.description} relative to ${object.id} `)
       .join('\n');
 
-    return `I just moved the ${object.id}.
+    return `user just moved the ${object.id}.
 
 These objects are around me:
-${neighborDescriptions || 'No nearby objects found.'}, tell me what you think about how i placed ${object.id} relative to the other objects, DONT suggest new objects that you arent aware of. Use object names please when refering to them.`;
+${neighborDescriptions || 'No nearby objects found.'}, tell them what you think about how they placed ${object.id} relative to the other objects, DONT suggest new objects that you arent aware of. Use object names please when refering to them and use proper english.`;
   },
 }));
