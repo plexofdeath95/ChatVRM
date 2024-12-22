@@ -89,7 +89,7 @@ export const Settings = ({
           </div>
           <div className="my-40">
             <div className="my-16 typography-20 font-bold">OpenAI Voice</div>
-            <select 
+            <select
               value={selectedVoice}
               onChange={(e) => onChangeVoice(e.target.value as OpenAIVoice)}
               className="px-16 py-8 bg-surface1 hover:bg-surface1-hover rounded-8"
@@ -117,7 +117,7 @@ export const Settings = ({
               className="px-16 py-8  bg-surface1 hover:bg-surface1-hover h-168 rounded-8 w-full"
             ></textarea>
           </div>
-          <div className="my-40">
+          {/* <div className="my-40">
             <div className="my-16 typography-20 font-bold">Voice Adjustment</div>
             <div>
               {`Using Koemotion's Koeiromap API. For more details, visit`}
@@ -201,7 +201,7 @@ export const Settings = ({
                 }}
               ></input>
             </div>
-          </div>
+          </div> */}
           {chatLog.length > 0 && (
             <div className="my-40">
               <div className="my-8 grid-cols-2">
