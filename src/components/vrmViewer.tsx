@@ -1,7 +1,11 @@
 // vrmViewer.tsx
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import {
+  Environment,
+  OrbitControls,
+  PerspectiveCamera,
+} from "@react-three/drei";
 import { buildUrl } from "@/utils/buildUrl";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useLoadVrmModel } from "@/features/vrmViewer/useLoadVrmModel";
@@ -17,6 +21,7 @@ import * as THREE from "three";
 import { SceneScreenshotManager } from "./SceneScreenshotManager";
 import { SceneScreenshotHandler } from "./SceneScreenshotHandler";
 import WalletHandler from "./walletHandler";
+import { useVrmStore } from "@/stores/vrmStore";
 
 function VrmModel({
   url,
@@ -36,7 +41,8 @@ function VrmModel({
 }
 
 export default function VrmViewer() {
-  const [vrmUrl, setVrmUrl] = useState(buildUrl("/jin_ai16z_wif_hat.vrm"));
+  const { vrmUrl, setVrmUrl } = useVrmStore();
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
