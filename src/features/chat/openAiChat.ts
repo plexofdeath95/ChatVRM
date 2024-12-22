@@ -3,6 +3,7 @@ import { Message } from "../messages/messages";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { OpenAIVoice } from "@/stores/imageInteractionStore";
 import { DEFAULT_VOICE } from "@/stores/imageInteractionStore";
+import { SYSTEM_PROMPT, INTERNAL_PROMPT } from "../constants/systemPromptConstants";
 
 // Get Chat Response (Non-Streaming)
 export async function getChatResponse(
@@ -19,6 +20,12 @@ export async function getChatResponse(
       apiKey: apiKey,
       dangerouslyAllowBrowser: true,
     });
+
+    // Add system messages at the start
+    const systemMessages: ChatCompletionMessageParam[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: INTERNAL_PROMPT }
+    ];
 
     // Transform messages to include image content if present
     const transformedMessages: ChatCompletionMessageParam[] = messages.map((msg) => {
@@ -43,7 +50,7 @@ export async function getChatResponse(
 
     const chatResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: transformedMessages,
+      messages: systemMessages.concat(transformedMessages),
       max_tokens: 200,
     });
 
@@ -95,9 +102,15 @@ export async function getChatResponseStream(
       } as ChatCompletionMessageParam;
     });
 
+    // Add system messages at the start
+    const systemMessages: ChatCompletionMessageParam[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: INTERNAL_PROMPT }
+    ];
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: transformedMessages,
+      messages: systemMessages.concat(transformedMessages),
       stream: true,
       max_tokens: 200,
     });
