@@ -6,6 +6,7 @@ import React, { useCallback, useContext, useRef, useState } from "react";
 import { Settings } from "./settings";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
 import { AssistantText } from "./assistantText";
+import { OpenAIVoice } from "@/stores/imageInteractionStore";
 
 type Props = {
   openAiKey: string;
@@ -21,6 +22,8 @@ type Props = {
   handleClickResetChatLog: () => void;
   handleClickResetSystemPrompt: () => void;
   onChangeKoeiromapKey: (key: string) => void;
+  selectedVoice: OpenAIVoice;
+  onChangeVoice: (voice: OpenAIVoice) => void;
 };
 export const Menu = ({
   openAiKey,
@@ -36,6 +39,8 @@ export const Menu = ({
   handleClickResetChatLog,
   handleClickResetSystemPrompt,
   onChangeKoeiromapKey,
+  selectedVoice,
+  onChangeVoice,
 }: Props) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showChatLog, setShowChatLog] = useState(false);
@@ -149,6 +154,8 @@ export const Menu = ({
           onClickResetChatLog={handleClickResetChatLog}
           onClickResetSystemPrompt={handleClickResetSystemPrompt}
           onChangeKoeiromapKey={handleChangeKoeiromapKey}
+          selectedVoice={selectedVoice}
+          onChangeVoice={onChangeVoice}
         />
       )}
       {!showChatLog && assistantMessage && (

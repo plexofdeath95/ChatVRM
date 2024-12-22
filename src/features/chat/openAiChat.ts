@@ -1,9 +1,15 @@
 import { OpenAI } from "openai";
 import { Message } from "../messages/messages";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { OpenAIVoice } from "@/stores/imageInteractionStore";
+import { DEFAULT_VOICE } from "@/stores/imageInteractionStore";
 
 // Get Chat Response (Non-Streaming)
-export async function getChatResponse(messages: Message[], apiKey: string) {
+export async function getChatResponse(
+  messages: Message[], 
+  apiKey: string,
+  voice: OpenAIVoice = DEFAULT_VOICE
+) {
   if (!apiKey) {
     return { message: "Please provide an OpenAI API key" };
   }
@@ -48,7 +54,11 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
   }
 }
 
-export async function getChatResponseStream(messages: Message[], apiKey: string): Promise<ReadableStream<string>> {
+export async function getChatResponseStream(
+  messages: Message[], 
+  apiKey: string,
+  voice: OpenAIVoice = DEFAULT_VOICE
+): Promise<ReadableStream<string>> {
   if (!apiKey) {
     return new ReadableStream({
       start(controller) {

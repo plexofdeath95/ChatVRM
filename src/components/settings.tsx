@@ -10,6 +10,8 @@ import {
   PRESET_D,
 } from "@/features/constants/koeiroParam";
 import { Link } from "./link";
+import { OpenAIVoice } from "@/stores/imageInteractionStore";
+import { useVoiceStore } from "@/stores/voiceStore";
 
 type Props = {
   openAiKey: string;
@@ -17,6 +19,7 @@ type Props = {
   chatLog: Message[];
   koeiroParam: KoeiroParam;
   koeiromapKey: string;
+  selectedVoice: OpenAIVoice;
   onClickClose: () => void;
   onChangeAiKey: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onChangeSystemPrompt: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -26,13 +29,16 @@ type Props = {
   onClickResetChatLog: () => void;
   onClickResetSystemPrompt: () => void;
   onChangeKoeiromapKey: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChangeVoice: (voice: OpenAIVoice) => void;
 };
+
 export const Settings = ({
   openAiKey,
   chatLog,
   systemPrompt,
   koeiroParam,
   koeiromapKey,
+  selectedVoice,
   onClickClose,
   onChangeSystemPrompt,
   onChangeAiKey,
@@ -42,7 +48,10 @@ export const Settings = ({
   onClickResetChatLog,
   onClickResetSystemPrompt,
   onChangeKoeiromapKey,
+  onChangeVoice,
 }: Props) => {
+  const { setSelectedVoice } = useVoiceStore();
+
   return (
     <div className="absolute z-40 w-full h-full bg-white/80 backdrop-blur ">
       <div className="absolute m-24">
@@ -75,14 +84,23 @@ export const Settings = ({
             <div className="my-16">
               The ChatGPT API is accessed directly from the browser. Neither API
               keys nor conversation content are stored on pixiv servers.
-              <br />* The model being used is ChatGPT API (GPT-3.5).
+              <br />* The model being used is ChatGPT API (GPT-4o-mini).
             </div>
           </div>
           <div className="my-40">
-            <div className="my-16 typography-20 font-bold">Character Model</div>
-            <div className="my-8">
-              <TextButton onClick={onClickOpenVrmFile}>Open VRM</TextButton>
-            </div>
+            <div className="my-16 typography-20 font-bold">OpenAI Voice</div>
+            <select 
+              value={selectedVoice}
+              onChange={(e) => onChangeVoice(e.target.value as OpenAIVoice)}
+              className="px-16 py-8 bg-surface1 hover:bg-surface1-hover rounded-8"
+            >
+              <option value="alloy">Alloy</option>
+              <option value="echo">Echo</option>
+              <option value="fable">Fable</option>
+              <option value="onyx">Onyx</option>
+              <option value="nova">Nova</option>
+              <option value="shimmer">Shimmer</option>
+            </select>
           </div>
           <div className="my-40">
             <div className="my-8">
@@ -93,7 +111,6 @@ export const Settings = ({
                 Reset Character Settings
               </TextButton>
             </div>
-
             <textarea
               value={systemPrompt}
               onChange={onChangeSystemPrompt}
@@ -101,9 +118,7 @@ export const Settings = ({
             ></textarea>
           </div>
           <div className="my-40">
-            <div className="my-16 typography-20 font-bold">
-              Voice Adjustment
-            </div>
+            <div className="my-16 typography-20 font-bold">Voice Adjustment</div>
             <div>
               {`Using Koemotion's Koeiromap API. For more details, visit`}
               <Link

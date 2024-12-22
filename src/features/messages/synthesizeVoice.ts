@@ -1,4 +1,5 @@
 import { OpenAI } from "openai";
+import { OpenAIVoice } from "@/stores/imageInteractionStore";
 
 export async function synthesizeVoice(message: string, apiKey: string) {
   const openai = new OpenAI({
@@ -18,10 +19,15 @@ export async function synthesizeVoice(message: string, apiKey: string) {
   return { audio: `data:audio/mp3;base64,${audioBase64}` };
 }
 
-export async function synthesizeVoiceApi(message: string, apiKey: string) {
+export async function synthesizeVoiceApi(
+  message: string, 
+  apiKey: string,
+  voice: OpenAIVoice = "nova"
+) {
   const body = {
     message: message,
     apiKey: apiKey,
+    voice: voice
   };
 
   const res = await fetch("/api/tts", {

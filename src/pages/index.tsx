@@ -15,6 +15,10 @@ import { useInteractableStore } from "@/stores/interactionStores";
 import { useScreenshotStore } from "@/stores/screenshotStore";
 import { DebugScreenshot } from "@/components/DebugScreenshot";
 import { AttributionModal } from "@/components/AttributionModal";
+import { useImageInteractionStore } from "@/stores/imageInteractionStore";
+import { OpenAIVoice, DEFAULT_VOICE } from "@/stores/imageInteractionStore";
+import { useVoiceStore } from "@/stores/voiceStore";
+import { useTipStore } from "@/stores/tipStore";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -29,6 +33,7 @@ export default function Home() {
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
   const { inputRef } = useUI();
+  const selectedVoice = useVoiceStore((state) => state.selectedVoice);
 
   useEffect(() => {
     const savedParams = window.localStorage.getItem("chatVRMParams");
@@ -65,9 +70,9 @@ export default function Home() {
   const handleSpeakAi = useCallback(
     async (text: string, onStart?: () => void, onEnd?: () => void) => {
       const screenplay = textsToScreenplay([text], koeiroParam);
-      speakCharacter(screenplay[0], openAiKey, onStart, onEnd);
+      speakCharacter(screenplay[0], openAiKey, onStart, onEnd, selectedVoice);
     },
-    [koeiromapKey, koeiroParam]
+    [koeiromapKey, koeiroParam, selectedVoice]
   );
 
   const handleSendChat = useCallback(
@@ -106,7 +111,7 @@ export default function Home() {
 
       let stream: ReadableStream<string> | null = null;
       try {
-        stream = await getChatResponseStream(messages, openAiKey);
+        stream = await getChatResponseStream(messages, openAiKey, selectedVoice);
       } catch (error) {
         console.error("Error fetching the stream:", error);
         setAssistantMessage("Error fetching response. Check your API key.");
@@ -160,7 +165,7 @@ export default function Home() {
         }
       }, 100);
     },
-    [systemPrompt, chatLog, openAiKey, handleSpeakAi, inputRef]
+    [systemPrompt, chatLog, openAiKey, handleSpeakAi, inputRef, selectedVoice]
   );
 
   const handleDirectAiResponse = useCallback(
@@ -193,7 +198,7 @@ export default function Home() {
 
       let stream: ReadableStream<string> | null = null;
       try {
-        stream = await getChatResponseStream(messages, openAiKey);
+        stream = await getChatResponseStream(messages, openAiKey, selectedVoice);
       } catch (error) {
         console.error("Error fetching the stream:", error);
         setAssistantMessage("Error fetching response. Check your API key.");
@@ -235,7 +240,7 @@ export default function Home() {
 
       setChatProcessing(false);
     },
-    [systemPrompt, chatLog, openAiKey, handleSpeakAi]
+    [systemPrompt, chatLog, openAiKey, handleSpeakAi, selectedVoice]
   );
 
   useEffect(() => {
@@ -258,6 +263,46 @@ export default function Home() {
         useScreenshotStore.getState().setLastScreenshot(null);
       });
       useInteractableStore.getState().clearInteractions();
+    });
+  
+    return () => unsubscribe();
+  }, [handleDirectAiResponse]);
+
+  useEffect(() => {
+    let isProcessing = false;
+  
+    const unsubscribe = useImageInteractionStore.subscribe((state) => {
+      const description = state.description;
+      if (!description || isProcessing || state.processed) return;
+      
+      isProcessing = true;
+      
+      const contextMessage = `I just changed the poster on the wall. The new poster shows: ${description}. What do you think about it?`;
+      
+      void handleDirectAiResponse(contextMessage).finally(() => {
+        isProcessing = false;
+        useImageInteractionStore.getState().setProcessed(true);
+      });
+    });
+  
+    return () => unsubscribe();
+  }, [handleDirectAiResponse]);
+
+  useEffect(() => {
+    let isProcessing = false;
+  
+    const unsubscribe = useTipStore.subscribe((state) => {
+      const tipAmount = state.lastTipAmount;
+      if (!tipAmount || isProcessing || state.processed) return;
+      
+      isProcessing = true;
+      
+      const contextMessage = `OMG! Someone just tipped me ${tipAmount} SOL! That's so incredibly generous! I'm really excited and grateful about this tip! What should I say to thank them?`;
+      
+      void handleDirectAiResponse(contextMessage).finally(() => {
+        isProcessing = false;
+        useTipStore.getState().setProcessed(true);
+      });
     });
   
     return () => unsubscribe();
@@ -294,6 +339,8 @@ export default function Home() {
         handleClickResetChatLog={() => setChatLog([])}
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
         onChangeKoeiromapKey={setKoeiromapKey}
+        selectedVoice={selectedVoice}
+        onChangeVoice={useVoiceStore.getState().setSelectedVoice}
       />
       <DebugScreenshot />
     </div>

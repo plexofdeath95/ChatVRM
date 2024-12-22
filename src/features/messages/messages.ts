@@ -33,6 +33,7 @@ type EmotionType = (typeof emotions)[number] & VRMExpressionPresetName;
  */
 export type Screenplay = {
   expression: EmotionType;
+  animation?: string;
   talk: Talk;
 };
 
@@ -50,20 +51,24 @@ export const textsToScreenplay = (
   for (let i = 0; i < texts.length; i++) {
     const text = texts[i];
 
-    const match = text.match(/\[(.*?)\]/);
-
-    const tag = (match && match[1]) || prevExpression;
-
-    const message = text.replace(/\[(.*?)\]/g, "");
-
+    const match = text.match(/\[(.*?),(.*?)\]/);
     let expression = prevExpression;
-    if (emotions.includes(tag as any)) {
-      expression = tag;
-      prevExpression = tag;
+    let animation: string | undefined;
+
+    if (match) {
+      const [_, emotionTag, animationTag] = match;
+      if (emotions.includes(emotionTag as any)) {
+        expression = emotionTag;
+        prevExpression = emotionTag;
+      }
+      animation = animationTag.trim();
     }
+
+    const message = text.replace(/\[(.*?),(.*?)\]/g, "");
 
     screenplays.push({
       expression: expression as EmotionType,
+      animation,
       talk: {
         style: emotionToTalkStyle(expression as EmotionType),
         speakerX: koeiroParam.speakerX,

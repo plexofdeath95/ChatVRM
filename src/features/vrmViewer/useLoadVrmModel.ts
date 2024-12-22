@@ -1,9 +1,119 @@
 import { useEffect, useState } from "react";
-import { Model } from "@/features/vrmViewer/model";
+import { Model, VRMAnimationDefinition } from "@/features/vrmViewer/model";
 import { Vector3, Camera, Scene } from "three";
-import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { buildUrl } from "@/utils/buildUrl";
 import { useVrmStore } from "@/stores/vrmStore";
+
+// Define available animations
+export const AVAILABLE_ANIMATIONS: VRMAnimationDefinition[] = [
+  // Idle animations
+  {
+    url: buildUrl("/idle_loop.vrma"),
+    name: "idle_loop",
+    description: "Default idle animation",
+    category: "idle"
+  },
+  {
+    url: buildUrl("/animations/anim_idle_happy.vrma"),
+    name: "idle_happy",
+    description: "Happy idle animation",
+    category: "idle"
+  },
+  
+  // Talking animations
+  {
+    url: buildUrl("/animations/anim_action_talk01.vrma"),
+    name: "talk_01",
+    description: "Talking animation variation 1",
+    category: "talking"
+  },
+  {
+    url: buildUrl("/animations/anim_action_talk02.vrma"),
+    name: "talk_02",
+    description: "Talking animation variation 2",
+    category: "talking"
+  },
+  {
+    url: buildUrl("/animations/anim_action_talk03.vrma"),
+    name: "talk_03",
+    description: "Talking animation variation 3",
+    category: "talking"
+  },
+  
+  // Emote animations
+  {
+    url: buildUrl("/animations/anim_action_argue.vrma"),
+    name: "argue",
+    description: "Arguing gesture",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_axeswing.vrma"),
+    name: "axe_swing",
+    description: "Swinging axe motion",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_clapping.vrma"),
+    name: "clapping",
+    description: "Clapping hands",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_cocky.vrma"),
+    name: "cocky",
+    description: "Cocky attitude pose",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_headshake.vrma"),
+    name: "headshake",
+    description: "Shaking head",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_look.vrma"),
+    name: "look",
+    description: "Looking around",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_lookshort.vrma"),
+    name: "look_short",
+    description: "Quick look",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_spin.vrma"),
+    name: "spin",
+    description: "Spinning motion",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_strong.vrma"),
+    name: "strong",
+    description: "Strong pose",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_twerk.vrma"),
+    name: "twerk",
+    description: "Twerk dance",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_wave.vrma"),
+    name: "wave",
+    description: "Waving gesture",
+    category: "emote"
+  },
+  {
+    url: buildUrl("/animations/anim_action_yelling.vrma"),
+    name: "yelling",
+    description: "Yelling motion",
+    category: "emote"
+  }
+];
 
 type UseLoadVrmModelParams = {
   url: string;
@@ -36,9 +146,15 @@ export function useLoadVrmModel({
 
         scene.add(m.vrm.scene);
 
-        const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
-        if (vrma) {
-          m.loadAnimation(vrma);
+        // Load all available animations
+        for (const animDef of AVAILABLE_ANIMATIONS) {
+          await m.loadAnimation(animDef);
+        }
+
+        // Play default idle animation
+        const defaultIdle = AVAILABLE_ANIMATIONS.find(anim => anim.name === "idle_loop");
+        if (defaultIdle) {
+          m.playAnimation(defaultIdle.name);
         }
 
         requestAnimationFrame(() => {

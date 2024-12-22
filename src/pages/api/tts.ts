@@ -1,5 +1,6 @@
 import { OpenAI } from "openai";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { OpenAIVoice } from "@/stores/imageInteractionStore";
 
 type Data = {
   audio: string;
@@ -10,7 +11,7 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   try {
-    const { message, apiKey } = req.body;
+    const { message, apiKey, voice } = req.body;
 
     if (!message || !apiKey) {
       return res.status(400).json({ audio: "Missing message or API key." });
@@ -23,7 +24,7 @@ export default async function handler(
     const ttsResponse = await openai.audio.speech.create({
       model: "tts-1",
       input: message,
-      voice: "onyx",
+      voice: voice,
     });
 
     const buffer = await ttsResponse.arrayBuffer();

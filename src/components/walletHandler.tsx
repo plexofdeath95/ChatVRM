@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction, TransactionSignature } from "@solana/web3.js";
 import { TextButton } from "./textButton";
 import { IconButton } from "./iconButton";
+import { useTipStore } from "@/stores/tipStore";
 
 export default function WalletHandler() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -92,6 +93,9 @@ export default function WalletHandler() {
             Transaction successful! <a href={explorerLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View in Explorer</a>
           </span>
         );
+
+        // Update tip store after successful transaction
+        useTipStore.getState().setLastTipAmount(transactionConfig.amountToSend);
         
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

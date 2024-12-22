@@ -1,18 +1,43 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import * as THREE from "three";
 import { ThreeElements } from "@react-three/fiber";
 import OpenAI from "openai";
+import { useImageInteractionStore } from "@/stores/imageInteractionStore";
+import { HoverableMaterial } from "./TransformGizmo/HoverableMaterial";
 
 export default function ImageFrame({
   position,
   rotation = [0, 0, 0],
   scale = [1.6, 1, 0.1],
+  defaultImage = "/images/brot_poster.png",
 }: {
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];
+  defaultImage?: string;
 }) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const setDescription = useImageInteractionStore((state) => state.setDescription);
+
+  useEffect(() => {
+    if (!texture) {
+      const loader = new THREE.TextureLoader();
+      loader.load(defaultImage, (newTexture) => {
+        const imageAspect = newTexture.image.width / newTexture.image.height;
+        const baseWidth = scale[0];
+        const baseHeight = scale[1];
+        
+        if (imageAspect > baseWidth / baseHeight) {
+          newTexture.userData = { width: baseWidth, height: baseWidth / imageAspect };
+        } else {
+          newTexture.userData = { width: baseHeight * imageAspect, height: baseHeight };
+        }
+        
+        setTexture(newTexture);
+      });
+    }
+  }, [defaultImage, scale, texture]);
 
   const analyzeImage = async (file: File) => {
     try {
@@ -41,7 +66,9 @@ export default function ImageFrame({
         max_tokens: 300,
       });
 
-      console.log("GPT Vision Analysis:", response.choices[0].message.content);
+      const description = response.choices[0].message.content || "";
+      console.log("GPT Vision Analysis:", description);
+      setDescription(description);
     } catch (error) {
       console.error("Error analyzing image:", error);
     }
@@ -78,12 +105,22 @@ export default function ImageFrame({
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh position={scale} onClick={handleClick}>
+      <mesh 
+        position={scale} 
+        onClick={handleClick}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
         <planeGeometry args={[
           texture?.userData?.width || scale[0],
           texture?.userData?.height || scale[1]
         ]} />
-        <meshBasicMaterial map={texture} color={texture ? undefined : "#ffffff"} />
+        <HoverableMaterial 
+          map={texture}
+          hovered={hovered}
+          borderColor="#00ff00"
+          borderWidth={0.02}
+        />
       </mesh>
     </group>
   );

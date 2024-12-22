@@ -3,6 +3,8 @@ import { wait } from "@/utils/wait";
 import { synthesizeVoiceApi } from "./synthesizeVoice";
 import { Screenplay, Talk } from "./messages";
 import { useVrmStore } from "@/stores/vrmStore";
+import { OpenAIVoice } from "@/stores/imageInteractionStore";
+import { useVoiceStore } from "@/stores/voiceStore";
 
 const createSpeakCharacter = () => {
   let lastTime = 0;
@@ -13,7 +15,8 @@ const createSpeakCharacter = () => {
     screenplay: Screenplay,
     openAIAPiKey: string,
     onStart?: () => void,
-    onComplete?: () => void
+    onComplete?: () => void,
+    voice?: OpenAIVoice
   ) => {
     const fetchPromise = prevFetchPromise.then(async () => {
       const now = Date.now();
@@ -60,9 +63,10 @@ export const speakCharacter = createSpeakCharacter();
 
 export const fetchAudio = async (
   talk: Talk,
-  apiKey: string
+  apiKey: string,
 ): Promise<ArrayBuffer> => {
-  const ttsVoice = await synthesizeVoiceApi(talk.message, apiKey);
+  const voice = useVoiceStore.getState().selectedVoice;
+  const ttsVoice = await synthesizeVoiceApi(talk.message, apiKey, voice);
   const url = ttsVoice.audio;
 
   if (!url) {

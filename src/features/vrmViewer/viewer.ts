@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import { Model } from "./model";
+import { Model, VRMAnimationDefinition } from "./model";
 import { loadVRMAnimation } from "@/lib/VRMAnimation/loadVRMAnimation";
 import { buildUrl } from "@/utils/buildUrl";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { AVAILABLE_ANIMATIONS } from "./useLoadVrmModel";
 
 /**
  * 3D viewer using three.js
@@ -56,10 +57,15 @@ export class Viewer {
 
       this._scene.add(this.model.vrm.scene);
 
-      const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
-      if (vrma) this.model.loadAnimation(vrma);
+      // Load all available animations
+      for (const animDef of AVAILABLE_ANIMATIONS) {
+        await this.model.loadAnimation(animDef);
+      }
 
-      // HACK: Adjust camera position after animation starts, as animation origin is offset
+      // Start with default idle animation
+      this.model.playAnimation("idle_loop");
+
+      // HACK: Adjust camera position
       requestAnimationFrame(() => {
         this.resetCamera();
       });
