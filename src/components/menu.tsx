@@ -7,6 +7,7 @@ import { Settings } from "./settings";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
 import { AssistantText } from "./assistantText";
 import { OpenAIVoice } from "@/stores/imageInteractionStore";
+import { TransformModeUI } from "./TransformGizmo/TransformModeUI";
 
 type Props = {
   openAiKey: string;
@@ -158,9 +159,12 @@ export const Menu = ({
           onChangeVoice={onChangeVoice}
         />
       )}
-      {!showChatLog && assistantMessage && (
-        <AssistantText message={assistantMessage} />
-      )}
+      <div className="absolute bottom-0 left-0 mb-104  w-full flex flex-col">
+        <TransformModeUI />
+        {!showChatLog && assistantMessage && (
+          <AssistantText message={assistantMessage} />
+        )}
+      </div>
       <input
         type="file"
         className="hidden"

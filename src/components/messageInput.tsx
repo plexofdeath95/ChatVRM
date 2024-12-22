@@ -41,7 +41,6 @@ export const MessageInput = ({
   return (
     <div className="absolute bottom-0 z-20 w-screen">
       <div className={`flex flex-col`} style={{ gap: "1rem" }}>
-        <TransformModeUI />
         <div className="bg-base text-black">
           <div className="mx-auto max-w-4xl p-16">
             <div className="grid grid-flow-col gap-[8px] grid-cols-[min-content_1fr_min-content]">
