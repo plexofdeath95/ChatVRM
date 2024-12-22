@@ -13,6 +13,7 @@
     "@charcoal-ui/icons": "^3.4.0",
     "@react-three/drei": "^9.114.6",
     "@react-three/fiber": "^8.17.10",
+    "@solana/web3.js": "^1.98.0",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/dom-speech-recognition": "^0.0.1",
     "eslint": "8.36.0",

@@ -267,6 +267,14 @@ export default function Home() {
     <div className={"font-M_PLUS_2"}>
       <Meta />
       <AttributionModal />
+      {!process.env.NEXT_PUBLIC_OPENAI_API_KEY && (
+        <Introduction 
+          openAiKey={openAiKey} 
+          koeiroMapKey={koeiromapKey} 
+          onChangeAiKey={setOpenAiKey} 
+          onChangeKoeiromapKey={setKoeiromapKey} 
+        />
+      )}
       <VrmViewer />
       <MessageInputContainer
         isChatProcessing={chatProcessing}
