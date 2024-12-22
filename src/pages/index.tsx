@@ -14,6 +14,7 @@ import { useUI } from "@/stores/uiStore";
 import { useInteractableStore } from "@/stores/interactionStores";
 import { useScreenshotStore } from "@/stores/screenshotStore";
 import { DebugScreenshot } from "@/components/DebugScreenshot";
+import { AttributionModal } from "@/components/AttributionModal";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -37,6 +38,9 @@ export default function Home() {
       setKoeiroParam(params.koeiroParam ?? DEFAULT_PARAM);
       setChatLog(params.chatLog ?? []);
     }
+
+    // Show attribution modal on first load
+    window.openAttributionModal?.();
   }, []);
 
   useEffect(() => {
@@ -262,6 +266,7 @@ export default function Home() {
   return (
     <div className={"font-M_PLUS_2"}>
       <Meta />
+      <AttributionModal />
       {!process.env.NEXT_PUBLIC_OPENAI_API_KEY && (
         <Introduction 
           openAiKey={openAiKey} 
@@ -271,13 +276,10 @@ export default function Home() {
         />
       )}
       <VrmViewer />
-
-      {/* <TransformModeUI /> */}
       <MessageInputContainer
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}
       />
-
       <Menu
         openAiKey={openAiKey}
         systemPrompt={systemPrompt}

@@ -107,7 +107,13 @@ export const Menu = ({
             label="Settings"
             isProcessing={false}
             onClick={() => setShowSettings(true)}
-          ></IconButton>
+          />
+          <IconButton
+            iconName="24/Info"
+            label="Attributions"
+            isProcessing={false}
+            onClick={() => (window as any).openAttributionModal?.()}
+          />
           {showChatLog ? (
             <IconButton
               iconName="24/CommentOutline"
