@@ -6,11 +6,11 @@ export const availableVrms = [
   {
     name: "ai16z",
     url: "/vrms/jin_ai16z_wif_hat.vrm",
-    previewImg: "/vrms/vrms_vrm_thumbs_Klip.webp",
+    previewImg: "/vrms/AI16z.png",
   },
   {
     name: "Klip",
-    url: "/vrms/ClipEdit6BSDF8.vrm",
+    url: "/vrms/Klip.vrm",
     previewImg: "/vrms/vrms_vrm_thumbs_Klip.webp",
   },
 ];

@@ -6,14 +6,13 @@ import { Link } from "./link";
 import { OpenAIVoice } from "@/stores/imageInteractionStore";
 import { useVoiceStore } from "@/stores/voiceStore";
 import { useVrmStore, availableVrms } from "@/stores/vrmStore";
+import { useSettings } from "@/stores/settingsStore";
 
 type Props = {
-  openAiKey: string;
   systemPrompt: string;
   chatLog: Message[];
   selectedVoice: OpenAIVoice;
   onClickClose: () => void;
-  onChangeAiKey: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onChangeSystemPrompt: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onChangeChatLog: (index: number, text: string) => void;
   onChangeKoeiroParam: (x: number, y: number) => void;
@@ -25,13 +24,11 @@ type Props = {
 };
 
 export const Settings = ({
-  openAiKey,
   chatLog,
   systemPrompt,
   selectedVoice,
   onClickClose,
   onChangeSystemPrompt,
-  onChangeAiKey,
   onChangeChatLog,
   onChangeKoeiroParam,
   onClickOpenVrmFile,
@@ -41,8 +38,7 @@ export const Settings = ({
   onChangeVoice,
 }: Props) => {
   const { vrmUrl, setVrmUrl } = useVrmStore();
-
-  console.log(vrmUrl);
+  const { openAiApiKey, setOpenAiApiKey } = useSettings();
 
   return (
     <div className="absolute z-40 w-full h-full bg-white/80 backdrop-blur">
@@ -63,8 +59,8 @@ export const Settings = ({
               className="text-ellipsis px-16 py-8 w-col-span-2 bg-surface1 hover:bg-surface1-hover rounded-8"
               type="text"
               placeholder="sk-..."
-              value={openAiKey}
-              onChange={onChangeAiKey}
+              value={openAiApiKey}
+              onChange={(e) => setOpenAiApiKey(e.target.value)}
             />
             <div>
               API keys can be obtained from

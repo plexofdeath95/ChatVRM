@@ -1,9 +1,10 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { ThreeElements } from "@react-three/fiber";
 import OpenAI from "openai";
 import { useImageInteractionStore } from "@/stores/imageInteractionStore";
 import { HoverableMaterial } from "./TransformGizmo/HoverableMaterial";
+import { useSettings } from "@/stores/settingsStore";
 
 export default function ImageFrame({
   position,
@@ -19,6 +20,10 @@ export default function ImageFrame({
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   const [hovered, setHovered] = useState(false);
   const setDescription = useImageInteractionStore((state) => state.setDescription);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const settings = useSettings();
 
   useEffect(() => {
     if (!texture) {
@@ -48,7 +53,7 @@ export default function ImageFrame({
       });
 
       const openai = new OpenAI({
-        apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+        apiKey: settings.openAiApiKey,
         dangerouslyAllowBrowser: true,
       });
 

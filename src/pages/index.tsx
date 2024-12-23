@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import VrmViewer from "@/components/vrmViewer";
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
 import { Message, textsToScreenplay } from "@/features/messages/messages";
@@ -19,14 +19,15 @@ import { useImageInteractionStore } from "@/stores/imageInteractionStore";
 import { OpenAIVoice, DEFAULT_VOICE } from "@/stores/imageInteractionStore";
 import { useVoiceStore } from "@/stores/voiceStore";
 import { useTipStore } from "@/stores/tipStore";
+import { useSettings } from "@/stores/settingsStore";
+import { IconButton } from "@/components/iconButton";
+import { TextButton } from "@/components/textButton";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
+  const settings = useSettings();
 
   const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
-  const [openAiKey, setOpenAiKey] = useState(
-    process.env.NEXT_PUBLIC_OPENAI_API_KEY || ""
-  );
   const [koeiromapKey, setKoeiromapKey] = useState("");
   const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
   const [chatProcessing, setChatProcessing] = useState(false);
@@ -70,14 +71,14 @@ export default function Home() {
   const handleSpeakAi = useCallback(
     async (text: string, onStart?: () => void, onEnd?: () => void) => {
       const screenplay = textsToScreenplay([text], koeiroParam);
-      speakCharacter(screenplay[0], openAiKey, onStart, onEnd, selectedVoice);
+      speakCharacter(screenplay[0], settings.openAiApiKey, onStart, onEnd, selectedVoice);
     },
-    [koeiromapKey, koeiroParam, selectedVoice]
+    [settings.openAiApiKey, koeiroParam, selectedVoice]
   );
 
   const handleSendChat = useCallback(
     async (userInput: string) => {
-      if (!openAiKey) {
+      if (!settings.openAiApiKey) {
         setAssistantMessage("API key has not been entered");
         return;
       }
@@ -111,7 +112,7 @@ export default function Home() {
 
       let stream: ReadableStream<string> | null = null;
       try {
-        stream = await getChatResponseStream(messages, openAiKey, selectedVoice);
+        stream = await getChatResponseStream(messages, settings.openAiApiKey, selectedVoice);
       } catch (error) {
         console.error("Error fetching the stream:", error);
         setAssistantMessage("Error fetching response. Check your API key.");
@@ -165,12 +166,12 @@ export default function Home() {
         }
       }, 100);
     },
-    [systemPrompt, chatLog, openAiKey, handleSpeakAi, inputRef, selectedVoice]
+    [systemPrompt, chatLog, settings.openAiApiKey, handleSpeakAi, inputRef, selectedVoice]
   );
 
   const handleDirectAiResponse = useCallback(
     async (prompt: string) => {
-      if (!openAiKey) {
+      if (!settings.openAiApiKey) {
         setAssistantMessage("API key has not been entered");
         return;
       }
@@ -198,7 +199,7 @@ export default function Home() {
 
       let stream: ReadableStream<string> | null = null;
       try {
-        stream = await getChatResponseStream(messages, openAiKey, selectedVoice);
+        stream = await getChatResponseStream(messages, settings.openAiApiKey, selectedVoice);
       } catch (error) {
         console.error("Error fetching the stream:", error);
         setAssistantMessage("Error fetching response. Check your API key.");
@@ -240,7 +241,7 @@ export default function Home() {
 
       setChatProcessing(false);
     },
-    [systemPrompt, chatLog, openAiKey, handleSpeakAi, selectedVoice]
+    [systemPrompt, chatLog, settings.openAiApiKey, handleSpeakAi, selectedVoice]
   );
 
   useEffect(() => {
@@ -312,13 +313,30 @@ export default function Home() {
     <div className={"font-M_PLUS_2"}>
       <Meta />
       <AttributionModal />
-      {!process.env.NEXT_PUBLIC_OPENAI_API_KEY && (
-        <Introduction 
-          openAiKey={openAiKey} 
-          koeiroMapKey={koeiromapKey} 
-          onChangeAiKey={setOpenAiKey} 
-          onChangeKoeiromapKey={setKoeiromapKey} 
-        />
+      {!settings.openAiApiKey && (
+        <div className="absolute z-40 w-full h-full bg-white/80 backdrop-blur">
+          <div className="text-text1 max-w-3xl mx-auto px-24 py-64">
+            <div className="bg-surface1 p-24 rounded-16 shadow-lg">
+              <div className="flex justify-between items-center mb-16">
+                <div className="typography-20 font-bold text-secondary">OpenAI API Key Required</div>
+                <IconButton 
+                  iconName="24/Close"
+                  isProcessing={false}
+                  onClick={() => settings.setOpenAiApiKey("DEMO")}
+                  aria-label="Close modal"
+                />
+              </div>
+              <p className="mt-16 text-text1">
+                Please set your OpenAI API key in the settings to continue. API keys can be obtained from the OpenAI website.
+              </p>
+              <div className="mt-24">
+                <TextButton onClick={() => settings.setOpenAiApiKey("DEMO")}>
+                  Use Demo Mode
+                </TextButton>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       <VrmViewer />
       <MessageInputContainer
@@ -326,19 +344,17 @@ export default function Home() {
         onChatProcessStart={handleSendChat}
       />
       <Menu
-        openAiKey={openAiKey}
         systemPrompt={systemPrompt}
         chatLog={chatLog}
         koeiroParam={koeiroParam}
         assistantMessage={assistantMessage}
         koeiromapKey={koeiromapKey}
-        onChangeAiKey={setOpenAiKey}
-        onChangeSystemPrompt={setSystemPrompt}
+        onChangeSystemPrompt={(e) => setSystemPrompt(e.target.value)}
         onChangeChatLog={handleChangeChatLog}
-        onChangeKoeiromapParam={setKoeiroParam}
+        onChangeKoeiromapParam={(x, y) => setKoeiroParam({ speakerX: x, speakerY: y })}
         handleClickResetChatLog={() => setChatLog([])}
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
-        onChangeKoeiromapKey={setKoeiromapKey}
+        onChangeKoeiromapKey={(e) => setKoeiromapKey(e.target.value)}
         selectedVoice={selectedVoice}
         onChangeVoice={useVoiceStore.getState().setSelectedVoice}
       />

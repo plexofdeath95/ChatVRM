@@ -10,31 +10,28 @@ import { OpenAIVoice } from "@/stores/imageInteractionStore";
 import { TransformModeUI } from "./TransformGizmo/TransformModeUI";
 
 type Props = {
-  openAiKey: string;
   systemPrompt: string;
   chatLog: Message[];
   koeiroParam: KoeiroParam;
   assistantMessage: string;
   koeiromapKey: string;
-  onChangeSystemPrompt: (systemPrompt: string) => void;
-  onChangeAiKey: (key: string) => void;
+  onChangeSystemPrompt: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onChangeChatLog: (index: number, text: string) => void;
-  onChangeKoeiromapParam: (param: KoeiroParam) => void;
+  onChangeKoeiromapParam: (x: number, y: number) => void;
   handleClickResetChatLog: () => void;
   handleClickResetSystemPrompt: () => void;
-  onChangeKoeiromapKey: (key: string) => void;
+  onChangeKoeiromapKey: (event: React.ChangeEvent<HTMLInputElement>) => void;
   selectedVoice: OpenAIVoice;
   onChangeVoice: (voice: OpenAIVoice) => void;
 };
+
 export const Menu = ({
-  openAiKey,
   systemPrompt,
   chatLog,
   koeiroParam,
   assistantMessage,
   koeiromapKey,
   onChangeSystemPrompt,
-  onChangeAiKey,
   onChangeChatLog,
   onChangeKoeiromapParam,
   handleClickResetChatLog,
@@ -44,124 +41,38 @@ export const Menu = ({
   onChangeVoice,
 }: Props) => {
   const [showSettings, setShowSettings] = useState(false);
-  const [showChatLog, setShowChatLog] = useState(false);
+  const [showKoeiromapKey, setShowKoeiromapKey] = useState(false);
   const { viewer } = useContext(ViewerContext);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleChangeSystemPrompt = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChangeSystemPrompt(event.target.value);
-    },
-    [onChangeSystemPrompt]
-  );
-
-  const handleAiKeyChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChangeAiKey(event.target.value);
-    },
-    [onChangeAiKey]
-  );
-
-  const handleChangeKoeiromapKey = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChangeKoeiromapKey(event.target.value);
-    },
-    [onChangeKoeiromapKey]
-  );
-
-  const handleChangeKoeiroParam = useCallback(
-    (x: number, y: number) => {
-      onChangeKoeiromapParam({
-        speakerX: x,
-        speakerY: y,
-      });
-    },
-    [onChangeKoeiromapParam]
-  );
-
-  const handleClickOpenVrmFile = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleChangeVrmFile = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (!files) return;
-
-      const file = files[0];
-      if (!file) return;
-
-      const file_type = file.name.split(".").pop();
-
-      if (file_type === "vrm") {
-        const blob = new Blob([file], { type: "application/octet-stream" });
-        const url = window.URL.createObjectURL(blob);
-        viewer.loadVrm(url);
-      }
-
-      event.target.value = "";
-    },
-    [viewer]
-  );
-
   return (
     <>
-      <div className="absolute z-10 m-24">
-        <div className="grid grid-flow-col gap-[8px]">
-          <IconButton
-            iconName="24/Menu"
-            label="Settings"
-            isProcessing={false}
-            onClick={() => setShowSettings(true)}
-          />
-          <IconButton
-            iconName="24/Info"
-            label="Attributions"
-            isProcessing={false}
-            onClick={() => (window as any).openAttributionModal?.()}
-          />
-          {showChatLog ? (
-            <IconButton
-              iconName="24/CommentOutline"
-              label="Chat Log"
-              isProcessing={false}
-              onClick={() => setShowChatLog(false)}
-            />
-          ) : (
-            <IconButton
-              iconName="24/CommentFill"
-              label="Chat Log"
-              isProcessing={false}
-              disabled={chatLog.length <= 0}
-              onClick={() => setShowChatLog(true)}
-            />
-          )}
-        </div>
+      <div className="absolute right-20 top-20 m-24">
+        <IconButton
+          iconName="24/Menu"
+          isProcessing={false}
+          onClick={() => setShowSettings(true)}
+        ></IconButton>
       </div>
-      {showChatLog && <ChatLog messages={chatLog} />}
       {showSettings && (
         <Settings
-          openAiKey={openAiKey}
-          chatLog={chatLog}
           systemPrompt={systemPrompt}
-          koeiroParam={koeiroParam}
-          koeiromapKey={koeiromapKey}
+          chatLog={chatLog}
+          selectedVoice={selectedVoice}
           onClickClose={() => setShowSettings(false)}
-          onChangeAiKey={handleAiKeyChange}
-          onChangeSystemPrompt={handleChangeSystemPrompt}
+          onChangeSystemPrompt={onChangeSystemPrompt}
           onChangeChatLog={onChangeChatLog}
-          onChangeKoeiroParam={handleChangeKoeiroParam}
-          onClickOpenVrmFile={handleClickOpenVrmFile}
+          onChangeKoeiroParam={onChangeKoeiromapParam}
+          onClickOpenVrmFile={() => {}}
           onClickResetChatLog={handleClickResetChatLog}
           onClickResetSystemPrompt={handleClickResetSystemPrompt}
-          onChangeKoeiromapKey={handleChangeKoeiromapKey}
-          selectedVoice={selectedVoice}
+          onChangeKoeiromapKey={onChangeKoeiromapKey}
           onChangeVoice={onChangeVoice}
         />
       )}
       <div className="absolute bottom-0 left-0 mb-104  w-full flex flex-col">
         <TransformModeUI />
-        {!showChatLog && assistantMessage && (
+        {!showKoeiromapKey && assistantMessage && (
           <AssistantText message={assistantMessage} />
         )}
       </div>
@@ -170,7 +81,7 @@ export const Menu = ({
         className="hidden"
         accept=".vrm"
         ref={fileInputRef}
-        onChange={handleChangeVrmFile}
+        onChange={() => {}}
       />
     </>
   );

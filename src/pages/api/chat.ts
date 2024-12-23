@@ -9,7 +9,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const apiKey = req.body.apiKey || process.env.OPEN_AI_KEY;
+  const apiKey = req.body.apiKey;
 
   if (!apiKey) {
     res.status(400).json({ message: "The API key is incorrect or not set." });
