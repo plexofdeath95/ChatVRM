@@ -6,7 +6,7 @@ export const availableVrms = [
   {
     name: "ai16z",
     url: "/vrms/jin_ai16z_wif_hat.vrm",
-    previewImg: "/vrms/AI16z.png",
+    previewImg: "/vrms/AI16z.webp",
   },
   {
     name: "Klip",
