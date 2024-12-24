@@ -2,10 +2,9 @@ import { buildUrl } from "@/utils/buildUrl";
 import Head from "next/head";
 
 export const Meta = () => {
-  const title = "ChatVRM";
-  const description =
-    "Enjoy conversations with 3D characters directly in your web browser using voice or text input and speech synthesis. You can also change the character (VRM), personality settings, and voice adjustments.";
-  const imageUrl = "https://pixiv.github.io/ChatVRM/ogp.png";
+  const title = "$MySpace";
+  const description = "Chat with 3D characters in your browser using voice or text, customize their look, personality, and voice, and even edit the environment to create immersive interactions.";
+  const imageUrl = "./opengraph.jpg";
   return (
     <Head>
       <title>{title}</title>

@@ -116,7 +116,7 @@ export default function WalletHandler() {
       <div className="absolute z-10 m-24 right-0">
         <div className="grid grid-flow-col gap-[8px]">
           {!walletConnected ? (
-            <TextButton onClick={connect}>Connect</TextButton>
+            <TextButton onClick={connect}>Connect Wallet</TextButton>
           ) : (
             <>
               <TextButton onClick={() => setShowModal(true)}>Tip</TextButton>
