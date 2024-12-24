@@ -298,7 +298,7 @@ export default function Home() {
       
       isProcessing = true;
       
-      const contextMessage = `OMG! Someone just tipped me ${tipAmount} SOL! That's so incredibly generous! I'm really excited and grateful about this tip! What should I say to thank them?`;
+      const contextMessage = `the user just tipped you ${tipAmount} SOL! That's so incredibly generous! you should say something to thank them, be overly grateful.`;
       
       void handleDirectAiResponse(contextMessage).finally(() => {
         isProcessing = false;
